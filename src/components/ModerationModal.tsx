@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { X, Star, Megaphone, Pin, Info, Shield, AlertTriangle } from 'lucide-react';
+import { X, Star, Megaphone, Pin, Info, Shield, AlertTriangle, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { deleteDiscussion } from '../services/delete-service';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'];
 type ModerationStatus = 'approved' | 'pending' | 'quarantined' | 'removed';
+type Category = Database['public']['Tables']['categories']['Row'];
 
 interface ModerationModalProps {
   discussion: Discussion;
@@ -16,6 +20,7 @@ interface ModerationModalProps {
 
 export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: ModerationModalProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isFeatured, setIsFeatured] = useState(discussion.is_featured);
   const [isPromoted, setIsPromoted] = useState(discussion.is_promoted);
@@ -28,6 +33,10 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
     discussion.promoted_end_date ? new Date(discussion.promoted_end_date).toISOString().slice(0, 16) : ''
   );
   const [pinOrder, setPinOrder] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(discussion.category_ids || []);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setIsFeatured(discussion.is_featured);
@@ -38,7 +47,14 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
     setPromotedEndDate(
       discussion.promoted_end_date ? new Date(discussion.promoted_end_date).toISOString().slice(0, 16) : ''
     );
+    setSelectedCategories(discussion.category_ids || []);
+    fetchCategories();
   }, [discussion]);
+
+  async function fetchCategories() {
+    const { data } = await supabase.from('categories').select('*').order('name');
+    if (data) setCategories(data);
+  }
 
   if (!isOpen) return null;
 
@@ -185,6 +201,18 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
             'is_pinned',
             discussion.is_pinned,
             isPinned
+          )
+        );
+      }
+
+      if (JSON.stringify(selectedCategories) !== JSON.stringify(discussion.category_ids)) {
+        updates.category_ids = selectedCategories;
+        promises.push(
+          logAudit(
+            'category_update',
+            'category_ids',
+            discussion.category_ids,
+            selectedCategories
           )
         );
       }
@@ -410,6 +438,58 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
           </div>
         </div>
 
+        <div className="border-t border-border pt-6 mt-6">
+          <h3 className="text-lg font-bold text-foreground mb-4">Category Management</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Update the categories for this discussion. Select 1-3 categories.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => {
+              const isSelected = selectedCategories.includes(category.id);
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedCategories(selectedCategories.filter(id => id !== category.id));
+                    } else {
+                      if (selectedCategories.length < 3) {
+                        setSelectedCategories([...selectedCategories, category.id]);
+                      }
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    isSelected
+                      ? 'text-white border-2 border-transparent'
+                      : 'bg-accent text-foreground border-2 border-border hover:bg-accent/70'
+                  }`}
+                  style={isSelected ? { backgroundColor: category.color } : {}}
+                >
+                  {category.name}
+                </button>
+              );
+            })}
+          </div>
+          {selectedCategories.length === 0 && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">At least one category is required</p>
+          )}
+        </div>
+
+        <div className="border-t border-border pt-6 mt-6">
+          <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">Danger Zone</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Delete this discussion permanently. This action cannot be undone.
+          </p>
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-medium rounded-xl transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Discussion
+          </button>
+        </div>
+
         <div className="flex gap-3 mt-8">
           <button
             onClick={onClose}
@@ -426,6 +506,27 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
             {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
+
+        <DeleteConfirmationModal
+          isOpen={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={async () => {
+            if (!user) return;
+            setDeleting(true);
+            const result = await deleteDiscussion(discussion.id, user.id);
+            setDeleting(false);
+            if (result.success) {
+              onClose();
+              navigate('/discussions');
+            } else {
+              alert(result.error || 'Failed to delete discussion');
+              setDeleteModalOpen(false);
+            }
+          }}
+          title="Delete Discussion"
+          message={`Are you sure you want to delete "${discussion.title}"? This action cannot be undone and will permanently remove this discussion and all its comments.`}
+          loading={deleting}
+        />
       </div>
     </div>
   );

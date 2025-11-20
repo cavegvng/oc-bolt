@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
-import { MessageSquare, ThumbsUp, Eye, Clock, Filter } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Eye, Clock, Filter, Trash2, Tag, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePermissions } from '../hooks/use-permissions';
+import { BulkCategoryModal } from '../components/BulkCategoryModal';
+import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { bulkDeleteDiscussions, bulkUpdateCategories } from '../services/delete-service';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'] & {
   users: {
@@ -27,11 +31,17 @@ type Category = Database['public']['Tables']['categories']['Row'];
 
 export function DiscussionsPage() {
   const { user } = useAuth();
+  const { hasRole } = usePermissions();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'trending'>('recent');
   const [loading, setLoading] = useState(true);
+  const [selectedDiscussions, setSelectedDiscussions] = useState<Set<string>>(new Set());
+  const [bulkCategoryModalOpen, setBulkCategoryModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const canModerate = hasRole('moderator');
 
   useEffect(() => {
     fetchCategories();
@@ -57,7 +67,8 @@ export function DiscussionsPage() {
         users!discussions_author_id_fkey (username, avatar_url),
         categories (name, color, slug)
       `)
-      .eq('moderation_status', 'approved');
+      .eq('moderation_status', 'approved')
+      .is('deleted_at', null);
 
     if (selectedCategory) {
       query = query.contains('category_ids', [selectedCategory]);
@@ -142,6 +153,56 @@ export function DiscussionsPage() {
     fetchDiscussions();
   }
 
+  function toggleSelectDiscussion(id: string) {
+    const newSelected = new Set(selectedDiscussions);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedDiscussions(newSelected);
+  }
+
+  function toggleSelectAll() {
+    if (selectedDiscussions.size === discussions.length && discussions.length > 0) {
+      setSelectedDiscussions(new Set());
+    } else {
+      setSelectedDiscussions(new Set(discussions.map(d => d.id)));
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!user || selectedDiscussions.size === 0) return;
+
+    setBulkLoading(true);
+    const result = await bulkDeleteDiscussions(Array.from(selectedDiscussions), user.id);
+    setBulkLoading(false);
+
+    if (result.success) {
+      setSelectedDiscussions(new Set());
+      setDeleteModalOpen(false);
+      fetchDiscussions();
+    } else {
+      alert(result.error || 'Failed to delete discussions');
+    }
+  }
+
+  async function handleBulkUpdateCategories(categoryIds: string[]) {
+    if (!user || selectedDiscussions.size === 0) return;
+
+    setBulkLoading(true);
+    const result = await bulkUpdateCategories(Array.from(selectedDiscussions), categoryIds, user.id);
+    setBulkLoading(false);
+
+    if (result.success) {
+      setSelectedDiscussions(new Set());
+      setBulkCategoryModalOpen(false);
+      fetchDiscussions();
+    } else {
+      alert(result.error || 'Failed to update categories');
+    }
+  }
+
   function formatTimeAgo(date: string) {
     const now = new Date();
     const then = new Date(date);
@@ -176,6 +237,20 @@ export function DiscussionsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {canModerate && (
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl text-foreground hover:bg-accent transition-colors"
+              title={selectedDiscussions.size === discussions.length && discussions.length > 0 ? 'Deselect All' : 'Select All'}
+            >
+              {selectedDiscussions.size === discussions.length && discussions.length > 0 ? (
+                <CheckSquare className="w-5 h-5" />
+              ) : (
+                <Square className="w-5 h-5" />
+              )}
+              <span className="hidden sm:inline">Select</span>
+            </button>
+          )}
           <div className="relative">
             <select
               value={sortBy}
@@ -264,9 +339,28 @@ export function DiscussionsPage() {
           {discussions.map((discussion) => (
             <div
               key={discussion.id}
-              className="bg-card rounded-2xl border border-border hover:border-red-500/50 hover:shadow-md transition-all"
+              className={`bg-card rounded-2xl border transition-all ${
+                selectedDiscussions.has(discussion.id)
+                  ? 'border-red-500 shadow-md'
+                  : 'border-border hover:border-red-500/50 hover:shadow-md'
+              }`}
             >
               <div className="flex items-center gap-4 p-4">
+                {canModerate && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleSelectDiscussion(discussion.id);
+                    }}
+                    className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {selectedDiscussions.has(discussion.id) ? (
+                      <CheckSquare className="w-5 h-5 text-red-600" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                )}
                 <Link
                   to={`/profile/${discussion.author_id}`}
                   className="flex-shrink-0"
@@ -375,6 +469,53 @@ export function DiscussionsPage() {
           ))}
         </div>
       )}
+
+      {canModerate && selectedDiscussions.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border rounded-3xl shadow-2xl p-4 flex items-center gap-4 z-50">
+          <span className="text-foreground font-medium">
+            {selectedDiscussions.size} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setBulkCategoryModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-2xl font-medium transition-colors"
+            >
+              <Tag className="w-4 h-4" />
+              <span>Change Categories</span>
+            </button>
+            <button
+              onClick={() => setDeleteModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-2xl font-medium transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
+            </button>
+            <button
+              onClick={() => setSelectedDiscussions(new Set())}
+              className="px-4 py-2 bg-accent hover:bg-accent/70 text-foreground rounded-2xl font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <BulkCategoryModal
+        isOpen={bulkCategoryModalOpen}
+        onClose={() => setBulkCategoryModalOpen(false)}
+        onConfirm={handleBulkUpdateCategories}
+        selectedCount={selectedDiscussions.size}
+        loading={bulkLoading}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Delete Discussions"
+        message={`Are you sure you want to delete ${selectedDiscussions.size} discussion${selectedDiscussions.size !== 1 ? 's' : ''}? This action cannot be undone.`}
+        loading={bulkLoading}
+      />
     </div>
   );
 }

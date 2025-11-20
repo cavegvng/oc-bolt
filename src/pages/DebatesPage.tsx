@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
-import { Scale, ThumbsUp, ThumbsDown, Minus, Clock, Eye, Filter } from 'lucide-react';
+import { Scale, ThumbsUp, ThumbsDown, Minus, Clock, Eye, Filter, Trash2, CheckSquare, Square } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { usePermissions } from '../hooks/use-permissions';
+import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { bulkDeleteDebates } from '../services/delete-service';
 
 type Debate = Database['public']['Tables']['debates']['Row'] & {
   users: {
@@ -22,11 +26,17 @@ type Debate = Database['public']['Tables']['debates']['Row'] & {
 type Category = Database['public']['Tables']['categories']['Row'];
 
 export function DebatesPage() {
+  const { user } = useAuth();
+  const { hasRole } = usePermissions();
   const [debates, setDebates] = useState<Debate[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'active'>('recent');
   const [loading, setLoading] = useState(true);
+  const [selectedDebates, setSelectedDebates] = useState<Set<string>>(new Set());
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const canModerate = hasRole('moderator');
 
   useEffect(() => {
     fetchCategories();
@@ -51,7 +61,8 @@ export function DebatesPage() {
         *,
         users!debates_author_id_fkey (username),
         categories (name, color)
-      `);
+      `)
+      .is('deleted_at', null);
 
     if (selectedCategory) {
       query = query.eq('category_id', selectedCategory);
@@ -98,6 +109,40 @@ export function DebatesPage() {
     setLoading(false);
   }
 
+  function toggleSelectDebate(id: string) {
+    const newSelected = new Set(selectedDebates);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedDebates(newSelected);
+  }
+
+  function toggleSelectAll() {
+    if (selectedDebates.size === debates.length && debates.length > 0) {
+      setSelectedDebates(new Set());
+    } else {
+      setSelectedDebates(new Set(debates.map(d => d.id)));
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!user || selectedDebates.size === 0) return;
+
+    setBulkLoading(true);
+    const result = await bulkDeleteDebates(Array.from(selectedDebates), user.id);
+    setBulkLoading(false);
+
+    if (result.success) {
+      setSelectedDebates(new Set());
+      setDeleteModalOpen(false);
+      fetchDebates();
+    } else {
+      alert(result.error || 'Failed to delete debates');
+    }
+  }
+
   function formatTimeAgo(date: string) {
     const now = new Date();
     const then = new Date(date);
@@ -124,6 +169,20 @@ export function DebatesPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {canModerate && (
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl text-foreground hover:bg-accent transition-colors"
+              title={selectedDebates.size === debates.length && debates.length > 0 ? 'Deselect All' : 'Select All'}
+            >
+              {selectedDebates.size === debates.length && debates.length > 0 ? (
+                <CheckSquare className="w-5 h-5" />
+              ) : (
+                <Square className="w-5 h-5" />
+              )}
+              <span className="hidden sm:inline">Select</span>
+            </button>
+          )}
           <div className="relative">
             <select
               value={sortBy}
@@ -261,11 +320,30 @@ export function DebatesPage() {
               const neutralPercent = totalVotes > 0 ? ((debate.stance_counts?.neutral || 0) / totalVotes) * 100 : 33.33;
 
               return (
-                <Link
-                  key={debate.id}
-                  to={`/debates/${debate.id}`}
-                  className="block bg-card rounded-3xl p-6 hover:shadow-xl hover:scale-[1.02] transition-all border border-border"
-                >
+                <div key={debate.id} className={`bg-card rounded-3xl p-6 transition-all border ${
+                  selectedDebates.has(debate.id)
+                    ? 'border-red-500 shadow-md'
+                    : 'border-border'
+                }`}>
+                  {canModerate && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleSelectDebate(debate.id);
+                      }}
+                      className="float-right text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {selectedDebates.has(debate.id) ? (
+                        <CheckSquare className="w-5 h-5 text-red-600" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
+                  <Link
+                    to={`/debates/${debate.id}`}
+                    className="block hover:opacity-80 transition-opacity"
+                  >
                   <div className="flex items-center gap-2 mb-3">
                     {debate.categories && (
                       <span
@@ -327,11 +405,44 @@ export function DebatesPage() {
                     </div>
                   </div>
                 </Link>
+                </div>
               );
             })}
           </div>
         </>
       )}
+
+      {canModerate && selectedDebates.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border rounded-3xl shadow-2xl p-4 flex items-center gap-4 z-50">
+          <span className="text-foreground font-medium">
+            {selectedDebates.size} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDeleteModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-2xl font-medium transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
+            </button>
+            <button
+              onClick={() => setSelectedDebates(new Set())}
+              className="px-4 py-2 bg-accent hover:bg-accent/70 text-foreground rounded-2xl font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Delete Debates"
+        message={`Are you sure you want to delete ${selectedDebates.size} debate${selectedDebates.size !== 1 ? 's' : ''}? This action cannot be undone.`}
+        loading={bulkLoading}
+      />
     </div>
   );
 }

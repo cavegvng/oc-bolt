@@ -13,11 +13,14 @@ import {
   Send,
   Settings,
   Edit,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { ModerationModal } from '../components/ModerationModal';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import UniversalEmbed from '../components/UniversalEmbed';
+import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { deleteDiscussion } from '../services/delete-service';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'] & {
   users: {
@@ -54,9 +57,13 @@ export function DiscussionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [moderationModalOpen, setModerationModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRestricted, setIsRestricted] = useState(false);
   const canModerateDiscussions = hasRole('super_moderator');
+  const isAuthor = user && discussion && user.id === discussion.author_id;
+  const canDelete = isAuthor || canModerateDiscussions;
 
   useEffect(() => {
     if (id) {
@@ -281,6 +288,21 @@ export function DiscussionDetailPage() {
     setSubmitting(false);
   }
 
+  async function handleDelete() {
+    if (!user || !id) return;
+
+    setDeleting(true);
+    const result = await deleteDiscussion(id, user.id);
+    setDeleting(false);
+
+    if (result.success) {
+      navigate('/discussions');
+    } else {
+      alert(result.error || 'Failed to delete discussion');
+      setDeleteModalOpen(false);
+    }
+  }
+
   function formatTimeAgo(date: string) {
     const now = new Date();
     const then = new Date(date);
@@ -375,7 +397,7 @@ export function DiscussionDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {user && user.id === discussion.author_id && (
+            {isAuthor && (
               <button
                 onClick={() => navigate(`/discussions/${id}/edit`)}
                 className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
@@ -383,6 +405,16 @@ export function DiscussionDetailPage() {
               >
                 <Edit className="w-4 h-4" />
                 <span>Edit</span>
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => setDeleteModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors"
+                title="Delete Discussion"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
               </button>
             )}
             {canModerateDiscussions && (
@@ -522,6 +554,15 @@ export function DiscussionDetailPage() {
           onUpdate={fetchAllData}
         />
       )}
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Discussion"
+        message={`Are you sure you want to delete "${discussion?.title}"? This action cannot be undone and will permanently remove this discussion and all its comments.`}
+        loading={deleting}
+      />
     </div>
   );
 }

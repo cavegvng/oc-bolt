@@ -3,7 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
-import { Scale, ThumbsUp, ThumbsDown, Minus, ArrowLeft, Lock, User as UserIcon, AlertCircle, Info } from 'lucide-react';
+import { usePermissions } from '../hooks/use-permissions';
+import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { deleteDebate } from '../services/delete-service';
+import { Scale, ThumbsUp, ThumbsDown, Minus, ArrowLeft, Lock, User as UserIcon, AlertCircle, Info, Trash2 } from 'lucide-react';
 
 type Debate = Database['public']['Tables']['debates']['Row'] & {
   users: {
@@ -29,6 +32,7 @@ export function DebateDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasRole } = usePermissions();
   const [debate, setDebate] = useState<Debate | null>(null);
   const [stances, setStances] = useState<DebateStance[]>([]);
   const [userStance, setUserStance] = useState<DebateStance | null>(null);
@@ -37,6 +41,11 @@ export function DebateDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [voteTrends, setVoteTrends] = useState<VoteTrend[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const canModerate = hasRole('moderator');
+  const isAuthor = user && debate && user.id === debate.author_id;
+  const canDelete = isAuthor || canModerate;
 
   useEffect(() => {
     if (id) {
@@ -224,6 +233,21 @@ export function DebateDetailPage() {
     fetchStances();
   }
 
+  async function handleDelete() {
+    if (!user || !id) return;
+
+    setDeleting(true);
+    const result = await deleteDebate(id, user.id);
+    setDeleting(false);
+
+    if (result.success) {
+      navigate('/debates');
+    } else {
+      alert(result.error || 'Failed to delete debate');
+      setDeleteModalOpen(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -270,9 +294,10 @@ export function DebateDetailPage() {
       </button>
 
       <div className="bg-card rounded-3xl p-8 border border-border">
-        <div className="flex items-start gap-4 mb-6">
-          <Scale className="w-8 h-8 text-red-600 flex-shrink-0" />
-          <div className="flex-1">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="flex items-start gap-4 flex-1">
+            <Scale className="w-8 h-8 text-red-600 flex-shrink-0" />
+            <div className="flex-1">
             <div className="flex items-center gap-2 mb-3 flex-wrap">
               {debate.categories && (
                 <span
@@ -303,7 +328,18 @@ export function DebateDetailPage() {
             <p className="text-sm text-muted-foreground">
               Started by <span className="font-medium text-foreground">{debate.users?.username || 'Anonymous'}</span>
             </p>
+            </div>
           </div>
+          {canDelete && (
+            <button
+              onClick={() => setDeleteModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors"
+              title="Delete Debate"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
+            </button>
+          )}
         </div>
 
         {voteTrends.length > 0 && (
@@ -648,6 +684,15 @@ export function DebateDetailPage() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Debate"
+        message={`Are you sure you want to delete "${debate?.topic}"? This action cannot be undone and will permanently remove this debate and all its arguments.`}
+        loading={deleting}
+      />
     </div>
   );
 }
