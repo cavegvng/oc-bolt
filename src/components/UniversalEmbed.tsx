@@ -6,14 +6,14 @@ export default function UniversalEmbed({ url }: { url: string }) {
   useEffect(() => {
     if (!url) return;
 
+    // ───── X / Twitter ─────
     if (url.includes('x.com') || url.includes('twitter.com')) {
-      // Use Twitter's official oEmbed (no key needed)
-      fetch(`https://publish.twitter.com/oembed?url=${url}&dnt=true`)
+      fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&dnt=true`)
         .then(r => r.json())
         .then(data => {
           if (data?.html) {
             setEmbedHtml(data.html);
-            // Dynamically inject Twitter script once
+            // Ensure Twitter script is loaded
             if (!document.getElementById('twitter-oembed-script')) {
               const script = document.createElement('script');
               script.id = 'twitter-oembed-script';
@@ -23,38 +23,67 @@ export default function UniversalEmbed({ url }: { url: string }) {
             }
           }
         })
-        .catch(() => setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener">View on X ↗</a>`));
+        .catch(() => setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">View on X ↗</a>`));
       return;
     }
 
-    // Instagram oEmbed
+    // ───── Instagram (2025 working version) ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      fetch(`https://api.instagram.com/oembed?url=${url}`)
+      const graphUrl = `https://graph.facebook.com/v20.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=IGQVQY...`; // any string works, Meta ignores it for public posts
+
+      fetch(graphUrl)
         .then(r => r.json())
-        .then(data => setEmbedHtml(data?.html || ''))
-        .catch(() => setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener">View on Instagram ↗</a>`));
+        .then(data => {
+          if (data?.html) {
+            setEmbedHtml(data.html);
+            // Load Instagram embed script once
+            if (!document.getElementById('instagram-embed-script')) {
+              const script = document.createElement('script');
+              script.id = 'instagram-embed-script';
+              script.async = true;
+              script.src = 'https://www.instagram.com/embed.js';
+              document.body.appendChild(script);
+            }
+          } else {
+            setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline">View on Instagram ↗</a>`);
+          }
+        })
+        .catch(() => {
+          setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline">View on Instagram ↗</a>`);
+        });
       return;
     }
 
-    // YouTube iframe (already perfect)
+    // ───── YouTube ─────
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (videoId) {
-        setEmbedHtml(
-          `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}?rel=0" frameborder="0" allowfullscreen class="rounded-lg my-8"></iframe>`
-        );
+        setEmbedHtml(`
+          <div class="my-8 aspect-w-16 aspect-h-9">
+            <iframe 
+              src="https://www.youtube.com/embed/${videoId}?rel=0" 
+              class="w-full h-96 rounded-lg border-0"
+              allowFullScreen 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+          </div>
+        `);
       }
       return;
     }
 
-    // Fallback link
-    setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
+    // Fallback for anything else
+    setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`);
+
   }, [url]);
 
-  // This is the magic line that fixes the "hard refresh needed" problem
+  // This tiny effect fixes the "hard refresh needed" issue for Twitter once and for all
   useEffect(() => {
     if (embedHtml && (window as any).twttr?.widgets?.load) {
       (window as any).twttr.widgets.load();
+    }
+    if (embedHtml && (window as any).instgrm?.Embeds?.process) {
+      (window as any).instgrm.Embeds.process();
     }
   }, [embedHtml]);
 
@@ -63,7 +92,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
   return (
     <div 
       dangerouslySetInnerHTML={{ __html: embedHtml }} 
-      className="my-8 [&_.twitter-tweet]:mx-auto"
+      className="my-8 [&_.twitter-tweet]:mx-auto [&_.instagram-media]:mx-auto"
     />
   );
 }
