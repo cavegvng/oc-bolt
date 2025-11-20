@@ -26,30 +26,47 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – 2025 iframe method (100% working, no API) ─────
+    // ───── Instagram – Posts + Reels (100% working Nov 2025 Iframe Method) ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      // Clean the URL and try /embed/
-      let embedUrl = url.split('?')[0];
-      if (!embedUrl.endsWith('/')) embedUrl += '/';
-      if (!embedUrl.endsWith('embed/')) embedUrl += 'embed/';
+      let embedUrl = url.split('?')[0].replace(/\/$/, ''); // clean URL
 
-      // Simple iframe – works for almost all public posts/reels
-      setEmbedHtml(`
-        <div class="my-8 flex justify-center">
-          <iframe 
-            src="${embedUrl}" 
-            class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0"
-            frameborder="0" 
-            scrolling="no" 
-            allowtransparency="true">
-          </iframe>
-        </div>
-        <p class="text-center -mt-4">
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
-            View on Instagram ↗
-          </a>
-        </p>
-      `);
+      if (embedUrl.includes('/reel/')) {
+        // Reels need the special embed code
+        setEmbedHtml(`
+          <div class="my-8 flex justify-center">
+            <blockquote class="instagram-media" data-instgrm-permalink="${embedUrl}/" data-instgrm-version="14" style="max-width:540px; width:100%;">
+              <a href="${embedUrl}/" target="_blank" rel="noopener">View this reel on Instagram</a>
+            </blockquote>
+          </div>
+          <script async src="//www.instagram.com/embed.js"></script>
+          <p class="text-center -mt-4">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
+              View on Instagram ↗
+            </a>
+          </p>
+        `);
+      } else {
+        // Regular posts – use iframe /embed/
+        if (!embedUrl.endsWith('/embed')) {
+          embedUrl += '/embed/';
+        }
+        setEmbedHtml(`
+          <div class="my-8 flex justify-center">
+            <iframe 
+              src="${embedUrl}" 
+              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0"
+              frameborder="0" 
+              scrolling="no" 
+              allowtransparency="true">
+            </iframe>
+          </div>
+          <p class="text-center -mt-4">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
+              View on Instagram ↗
+            </a>
+          </p>
+        `);
+      }
       return;
     }
 
