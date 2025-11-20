@@ -459,14 +459,16 @@ export function DiscussionDetailPage() {
           </div>
         </div>
 
-        <div className="mb-8">
-          <MarkdownRenderer content={discussion.description} />
-        </div>
+
 
         <div className="space-y-8">
           {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
           {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
           {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
+        </div>
+
+        <div className="mb-8">
+          <MarkdownRenderer content={discussion.description} />
         </div>
 
         {discussion.image_url && (
