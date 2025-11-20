@@ -25,22 +25,19 @@ export default function UniversalEmbed({ url }: { url: string }) {
         .catch(() => setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">View on X ↗</a>`));
       return;
     }
-
-    // ───── Instagram – Final clean version (no stacking, no white box, beautiful fallback) ─────
-    if (url.includes('instagram.com') || url.includes('instagr.am')) {
+if (url.includes('instagram.com') || url.includes('instagr.am')) {
       let embedUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Force reels to /p/ so embed works when allowed
       embedUrl = embedUrl.replace('/reel/', '/p/');
       if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
 
-      const uniqueId = `ig-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const uniqueId = `ig-${Date.now()}`;
 
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
-          <div id="${uniqueId}" class="w-full max-w-lg relative bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
-            <!-- Beautiful fallback card – shown first -->
-            <div class="w-full h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8">
+          <div id="${uniqueId}" class="w-full max-w-lg relative rounded-lg overflow-hidden shadow-2xl bg-gray-900">
+            <!-- Permanent beautiful fallback (always visible until iframe proves it works) -->
+            <div id="${uniqueId}-fallback" class="w-full h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8">
               <div class="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
                 <svg class="w-12 h-12 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -49,7 +46,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
               <p class="text-lg text-gray-300">Loading Instagram content...</p>
             </div>
 
-            <!-- Real iframe – hidden until loaded -->
+            <!-- iframe hidden behind fallback – only shown if it actually loads -->
             <iframe
               src="${embedUrl}"
               class="absolute inset-0 w-full h-full rounded-lg opacity-0 transition-opacity duration-500"
@@ -57,8 +54,8 @@ export default function UniversalEmbed({ url }: { url: string }) {
               scrolling="no"
               allowtransparency="true"
               loading="lazy"
-              onload="this.style.opacity = '1'; this.previousElementSibling.style.display = 'none';"
-              onerror="this.previousElementSibling.innerHTML = '<div class=\\"w-full h-full flex flex-col items-center justify-center text-center p-8\\"><svg class=\\"w-24 h-24 text-pink-400 mb-6\\" fill=\\"none\\" stroke=\\"currentColor\\" viewBox=\\"0 0 24 24\\"><path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" stroke-width=\\"1.5\\" d=\\"M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\\"></path></svg><p class=\\"text-2xl font-bold text-white\\">Instagram Reel</p><p class=\\"text-gray-300 mt-2\\">Embedding blocked by Instagram</p><a href=\\"${url}\\" target=\\"_blank\\" class=\\"mt-8 px-8 py-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-full transition shadow-lg\\">View on Instagram ↗</a></div>'; this.style.display = 'none';">
+              onload="this.style.opacity='1'; document.getElementById('${uniqueId}-fallback').style.display='none';"
+              onerror="document.getElementById('${uniqueId}-fallback').innerHTML = '<div class=\\"w-full h-full flex flex-col items-center justify-center text-center p-8\\"><svg class=\\"w-24 h-24 text-pink-400 mb-6\\" fill=\\"none\\" stroke=\\"currentColor\\" viewBox=\\"0 0 24 24\\"><path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" stroke-width=\\"1.5\\" d=\\"M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\\"></path></svg><p class=\\"text-2xl font-bold text-white\\">Instagram Reel</p><p class=\\"text-gray-300 mt-2\\">Embedding blocked by Instagram</p><a href=\\"${url}\\" target=\\"_blank\\" class=\\"mt-8 px-8 py-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-full transition shadow-lg\\">View on Instagram ↗</a></div>'; this.style.display='none';">
             </iframe>
           </div>
         </div>
