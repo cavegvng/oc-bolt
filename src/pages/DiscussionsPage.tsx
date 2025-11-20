@@ -41,6 +41,7 @@ export function DiscussionsPage() {
   const [bulkCategoryModalOpen, setBulkCategoryModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
   const canModerate = hasRole('moderator');
 
   useEffect(() => {
@@ -162,11 +163,10 @@ export function DiscussionsPage() {
     setSelectedDiscussions(newSelected);
   }
 
-  function toggleSelectAll() {
-    if (selectedDiscussions.size === discussions.length && discussions.length > 0) {
+  function toggleSelectionMode() {
+    setSelectionMode(!selectionMode);
+    if (selectionMode) {
       setSelectedDiscussions(new Set());
-    } else {
-      setSelectedDiscussions(new Set(discussions.map(d => d.id)));
     }
   }
 
@@ -179,6 +179,7 @@ export function DiscussionsPage() {
 
     if (result.success) {
       setSelectedDiscussions(new Set());
+      setSelectionMode(false);
       setDeleteModalOpen(false);
       fetchDiscussions();
     } else {
@@ -195,6 +196,7 @@ export function DiscussionsPage() {
 
     if (result.success) {
       setSelectedDiscussions(new Set());
+      setSelectionMode(false);
       setBulkCategoryModalOpen(false);
       fetchDiscussions();
     } else {
@@ -238,16 +240,16 @@ export function DiscussionsPage() {
         <div className="flex items-center gap-3">
           {canModerate && (
             <button
-              onClick={toggleSelectAll}
+              onClick={toggleSelectionMode}
               className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl text-foreground hover:bg-accent transition-colors"
-              title={selectedDiscussions.size === discussions.length && discussions.length > 0 ? 'Deselect All' : 'Select All'}
+              title={selectionMode ? 'Cancel Selection' : 'Select Mode'}
             >
-              {selectedDiscussions.size === discussions.length && discussions.length > 0 ? (
+              {selectionMode ? (
                 <CheckSquare className="w-5 h-5" />
               ) : (
                 <Square className="w-5 h-5" />
               )}
-              <span className="hidden sm:inline">Select</span>
+              <span className="hidden sm:inline">{selectionMode ? 'Cancel' : 'Select'}</span>
             </button>
           )}
           <div className="relative">
@@ -345,7 +347,7 @@ export function DiscussionsPage() {
               }`}
             >
               <div className="flex items-center gap-4 p-4">
-                {canModerate && (
+                {canModerate && selectionMode && (
                   <button
                     onClick={(e) => {
                       e.preventDefault();

@@ -36,6 +36,7 @@ export function DebatesPage() {
   const [selectedDebates, setSelectedDebates] = useState<Set<string>>(new Set());
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
   const canModerate = hasRole('moderator');
 
   useEffect(() => {
@@ -118,11 +119,10 @@ export function DebatesPage() {
     setSelectedDebates(newSelected);
   }
 
-  function toggleSelectAll() {
-    if (selectedDebates.size === debates.length && debates.length > 0) {
+  function toggleSelectionMode() {
+    setSelectionMode(!selectionMode);
+    if (selectionMode) {
       setSelectedDebates(new Set());
-    } else {
-      setSelectedDebates(new Set(debates.map(d => d.id)));
     }
   }
 
@@ -135,6 +135,7 @@ export function DebatesPage() {
 
     if (result.success) {
       setSelectedDebates(new Set());
+      setSelectionMode(false);
       setDeleteModalOpen(false);
       fetchDebates();
     } else {
@@ -170,16 +171,16 @@ export function DebatesPage() {
         <div className="flex items-center gap-3">
           {canModerate && (
             <button
-              onClick={toggleSelectAll}
+              onClick={toggleSelectionMode}
               className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-2xl text-foreground hover:bg-accent transition-colors"
-              title={selectedDebates.size === debates.length && debates.length > 0 ? 'Deselect All' : 'Select All'}
+              title={selectionMode ? 'Cancel Selection' : 'Select Mode'}
             >
-              {selectedDebates.size === debates.length && debates.length > 0 ? (
+              {selectionMode ? (
                 <CheckSquare className="w-5 h-5" />
               ) : (
                 <Square className="w-5 h-5" />
               )}
-              <span className="hidden sm:inline">Select</span>
+              <span className="hidden sm:inline">{selectionMode ? 'Cancel' : 'Select'}</span>
             </button>
           )}
           <div className="relative">
@@ -324,7 +325,7 @@ export function DebatesPage() {
                     ? 'border-red-500 shadow-md'
                     : 'border-border'
                 }`}>
-                  {canModerate && (
+                  {canModerate && selectionMode && (
                     <button
                       onClick={(e) => {
                         e.preventDefault();
