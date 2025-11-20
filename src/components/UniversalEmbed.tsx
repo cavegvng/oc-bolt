@@ -28,16 +28,27 @@ export default function UniversalEmbed({ url }: { url: string }) {
 
     // ───── Instagram – 2025 iframe method (100% working, no API) ─────
     // ───── Instagram Posts & Reels – 100% WORKING NOV 2025 ─────
-if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+    if (url.includes('instagram.com') || url.includes('instagr.am')) {
+      let embedUrl = url.split('?')[0].replace(/\/$/, ''); // clean URL + remove query + trailing slash
+      
+      // FORCE /p/ for reels (this is the magic that makes reels embed)
+      embedUrl = embedUrl.replace('/reel/', '/p/');
+      
+      // Add /embed/ for the iframe
+      if (!embedUrl.endsWith('/embed')) {
+        embedUrl += '/embed/';
+      }
 
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
-          <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}/" data-instgrm-version="14" style="max-width:658px; width:100%;">
-            <a href="${cleanUrl}/" rel="noopener noreferrer" target="_blank">Loading Instagram content...</a>
-          </blockquote>
+          <iframe 
+            src="${embedUrl}" 
+            class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0"
+            frameborder="0" 
+            scrolling="no" 
+            allowtransparency="true">
+          </iframe>
         </div>
-        <script async src="//www.instagram.com/embed.js"></script>
         <p class="text-center -mt-4">
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
             View on Instagram ↗
