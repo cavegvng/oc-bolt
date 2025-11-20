@@ -459,11 +459,13 @@ export function DiscussionDetailPage() {
           </div>
         </div>
 
-        <div className="prose max-w-none dark:prose-invert">
+        {/* Main description text with clickable links */}
+        <div className="prose prose-invert max-w-none mb-10">
           <ReactMarkdown>{discussion.description}</ReactMarkdown>
         </div>
 
-        <div className="space-y-8 mt-8">
+        {/* Native embeds BELOW the text */}
+        <div className="space-y-8 -mt-6">
           {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
           {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
           {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
