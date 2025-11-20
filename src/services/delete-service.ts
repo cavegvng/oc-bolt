@@ -2,27 +2,24 @@ import { supabase } from '../lib/supabase';
 
 export async function deleteDiscussion(discussionId: string, userId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    await supabase.from('discussion_control_audit_log').insert({
+      discussion_id: discussionId,
+      user_id: userId,
+      action_type: 'deleted',
+      field_changed: 'deleted',
+      old_value: 'exists',
+      new_value: 'permanently_deleted',
+    });
+
     const { error } = await supabase
       .from('discussions')
-      .update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: userId,
-      })
+      .delete()
       .eq('id', discussionId);
 
     if (error) {
       console.error('Error deleting discussion:', error);
       return { success: false, error: error.message };
     }
-
-    await supabase.from('discussion_control_audit_log').insert({
-      discussion_id: discussionId,
-      user_id: userId,
-      action_type: 'deleted',
-      field_changed: 'deleted_at',
-      old_value: 'null',
-      new_value: new Date().toISOString(),
-    });
 
     return { success: true };
   } catch (error) {
@@ -35,10 +32,7 @@ export async function deleteDebate(debateId: string, userId: string): Promise<{ 
   try {
     const { error } = await supabase
       .from('debates')
-      .update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: userId,
-      })
+      .delete()
       .eq('id', debateId);
 
     if (error) {
@@ -58,29 +52,26 @@ export async function bulkDeleteDiscussions(
   userId: string
 ): Promise<{ success: boolean; processed: number; error?: string }> {
   try {
+    const auditLogs = discussionIds.map((id) => ({
+      discussion_id: id,
+      user_id: userId,
+      action_type: 'bulk_deleted',
+      field_changed: 'deleted',
+      old_value: 'exists',
+      new_value: 'permanently_deleted',
+    }));
+
+    await supabase.from('discussion_control_audit_log').insert(auditLogs);
+
     const { error, count } = await supabase
       .from('discussions')
-      .update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: userId,
-      })
+      .delete()
       .in('id', discussionIds);
 
     if (error) {
       console.error('Error bulk deleting discussions:', error);
       return { success: false, processed: 0, error: error.message };
     }
-
-    const auditLogs = discussionIds.map((id) => ({
-      discussion_id: id,
-      user_id: userId,
-      action_type: 'bulk_deleted',
-      field_changed: 'deleted_at',
-      old_value: 'null',
-      new_value: new Date().toISOString(),
-    }));
-
-    await supabase.from('discussion_control_audit_log').insert(auditLogs);
 
     return { success: true, processed: count || discussionIds.length };
   } catch (error) {
@@ -96,10 +87,7 @@ export async function bulkDeleteDebates(
   try {
     const { error, count } = await supabase
       .from('debates')
-      .update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: userId,
-      })
+      .delete()
       .in('id', debateIds);
 
     if (error) {

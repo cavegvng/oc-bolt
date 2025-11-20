@@ -61,8 +61,7 @@ export function DebatesPage() {
         *,
         users!debates_author_id_fkey (username),
         categories (name, color)
-      `)
-      .is('deleted_at', null);
+      `);
 
     if (selectedCategory) {
       query = query.eq('category_id', selectedCategory);

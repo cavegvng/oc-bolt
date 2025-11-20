@@ -67,8 +67,7 @@ export function DiscussionsPage() {
         users!discussions_author_id_fkey (username, avatar_url),
         categories (name, color, slug)
       `)
-      .eq('moderation_status', 'approved')
-      .is('deleted_at', null);
+      .eq('moderation_status', 'approved');
 
     if (selectedCategory) {
       query = query.contains('category_ids', [selectedCategory]);

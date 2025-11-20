@@ -102,7 +102,8 @@ export function HomePage() {
         .order('name'),
       supabase
         .from('discussions')
-        .select('id', { count: 'exact', head: true }),
+        .select('id', { count: 'exact', head: true })
+        .eq('moderation_status', 'approved'),
       supabase
         .from('users')
         .select('id', { count: 'exact', head: true }),
