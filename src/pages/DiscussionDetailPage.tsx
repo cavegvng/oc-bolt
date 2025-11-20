@@ -17,7 +17,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { ModerationModal } from '../components/ModerationModal';
-import { MarkdownRenderer } from '../components/MarkdownRenderer';
+import ReactMarkdown from 'react-markdown';
 import UniversalEmbed from '../components/UniversalEmbed';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
 import { deleteDiscussion } from '../services/delete-service';
@@ -459,11 +459,11 @@ export function DiscussionDetailPage() {
           </div>
         </div>
 
-        <div className="mb-8">
-          <MarkdownRenderer content={discussion.description} />
+        <div className="prose max-w-none dark:prose-invert">
+          <ReactMarkdown>{discussion.description}</ReactMarkdown>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-8 mt-8">
           {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
           {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
           {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
