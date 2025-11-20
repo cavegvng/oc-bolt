@@ -1,40 +1,55 @@
 import { useEffect, useRef } from 'react';
 
+declare global {
+  interface Window {
+    twttr?: any;
+    instgrm?: any;
+  }
+}
+
 export default function UniversalEmbed({ url }: { url: string }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
-    ref.current.innerHTML = '';
+    if (!containerRef.current) return;
 
-    let script: HTMLScriptElement;
+    containerRef.current.innerHTML = '';
 
     if (url.includes('x.com') || url.includes('twitter.com')) {
-      ref.current.innerHTML = `<blockquote class="twitter-tweet"><a href="${url}"></a></blockquote>`;
-      script = document.createElement('script');
+      containerRef.current.innerHTML = `<blockquote class="twitter-tweet" data-dnt="true"><a href="${url}"></a></blockquote>`;
+
+      const script = document.createElement('script');
       script.src = 'https://platform.twitter.com/widgets.js';
       script.async = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        if (window.twttr?.widgets?.load) {
+          window.twttr.widgets.load(containerRef.current);
+        }
+      };
     }
+
     else if (url.includes('instagram.com')) {
-      ref.current.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${url}"><a href="${url}"></a></blockquote>`;
-      script = document.createElement('script');
+      containerRef.current.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${url}"><a href="${url}"></a></blockquote>`;
+
+      const script = document.createElement('script');
       script.src = 'https://www.instagram.com/embed.js';
       script.async = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        if (window.instgrm?.Embeds?.process) {
+          window.instgrm.Embeds.process();
+        }
+      };
     }
+
     else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-      ref.current.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" class="w-full aspect-video rounded-lg" allowFullScreen></iframe>`;
-      return;
+      const id = url.includes('v=') ? url.split('v=')[1]?.split('&')[0] : url.split('/').pop();
+      containerRef.current.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" class="w-full aspect-video rounded-lg" allowFullScreen></iframe>`;
     }
-
-    document.body.appendChild(script);
-    script.onload = () => {
-      if ((window as any).twttr?.widgets?.load) (window as any).twttr.widgets.load(ref.current);
-      if ((window as any).instgrm?.Embeds?.process) (window as any).instgrm.Embeds.process();
-    };
-
-    return () => script?.remove();
   }, [url]);
 
-  return <div ref={ref} className="my-8" />;
+  return <div ref={containerRef} className="my-8" />;
 }
