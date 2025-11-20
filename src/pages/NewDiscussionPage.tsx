@@ -79,10 +79,10 @@ export function NewDiscussionPage() {
     setError('');
 
     try {
-      const urls = formData.description.match(/https?:\/\/[^\s]+/g) || [];
-      const twitter_url = urls.find(u => u.includes('x.com') || u.includes('twitter.com')) || null;
-      const instagram_url = urls.find(u => u.includes('instagram.com')) || null;
-      const youtube_url = urls.find(u => u.includes('youtube.com') || u.includes('youtu.be')) || null;
+      const allUrls = formData.description.match(/https?:\/\/[^\s<>"']+/g) || [];
+      const twitter_url = allUrls.find(u => /x\.com|twitter\.com/i.test(u) && /status\/\d+/i.test(u)) || null;
+      const instagram_url = allUrls.find(u => /instagram\.com\/(p|reel|tv)\//i.test(u)) || null;
+      const youtube_url = allUrls.find(u => /youtube\.com|youtu\.be/i.test(u)) || null;
 
       const { data, error: insertError } = await supabase
         .from('discussions')
