@@ -26,14 +26,13 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – 2025 iframe method (100% working, no API) ─────
-    // ───── Instagram Posts & Reels – 100% WORKING NOV 2025 ─────
+// ───── Instagram Posts & Reels – with nice fallback for blocked reels - Iframe Method ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      let embedUrl = url.split('?')[0].replace(/\/$/, ''); // clean URL + remove query + trailing slash
-      
-      // FORCE /p/ for reels (this is the magic that makes reels embed)
+      let embedUrl = url.split('?')[0].replace(/\/$/, ''); // clean URL
+
+      // Force /p/ for reels so embed works when possible
       embedUrl = embedUrl.replace('/reel/', '/p/');
-      
+
       // Add /embed/ for the iframe
       if (!embedUrl.endsWith('/embed')) {
         embedUrl += '/embed/';
@@ -41,12 +40,14 @@ export default function UniversalEmbed({ url }: { url: string }) {
 
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
-          <iframe 
-            src="${embedUrl}" 
+          <iframe
+            src="${embedUrl}"
             class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0"
-            frameborder="0" 
-            scrolling="no" 
-            allowtransparency="true">
+            frameborder="0"
+            scrolling="no"
+            allowtransparency="true"
+            loading="lazy"
+            onerror="this.style.display='none'; this.parentElement.innerHTML+='<div class=\\"bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl w-full h-96 flex flex-col items-center justify-center text-gray-400\\"><svg class=\\"w-16 h-16 mb-4\\" fill=\\"none\\" stroke=\\"currentColor\\" viewBox=\\"0 0 24 24\\"><path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" stroke-width=\\"2\\" d=\\"M7 4v16M17 4v16M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z\\"></path></svg>Reel blocked by Instagram<br/><a href=\\"${url}\\" target=\\"_blank\\" class=\\"text-pink-400 underline mt-2\\">View on Instagram ↗</a></div>'">
           </iframe>
         </div>
         <p class="text-center -mt-4">
