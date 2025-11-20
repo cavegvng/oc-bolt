@@ -431,9 +431,11 @@ export function DiscussionDetailPage() {
           <MarkdownRenderer content={discussion.description} />
         </div>
 
-        {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
-        {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
-        {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
+        <div className="space-y-8">
+          {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
+          {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
+          {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
+        </div>
 
         {discussion.image_url && (
           <img
