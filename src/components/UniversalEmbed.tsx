@@ -9,22 +9,32 @@ export default function UniversalEmbed({ url }: { url: string }) {
     // Clean the container
     ref.current.innerHTML = '';
 
-    // Twitter / X
+    // Twitter / X — FIXED VERSION
     if (url.includes('x.com') || url.includes('twitter.com')) {
+      // Make sure URL has https://
+      const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+
       const blockquote = document.createElement('blockquote');
       blockquote.className = 'twitter-tweet';
-      blockquote.innerHTML = `<a href="${url}">Loading tweet...</a>`;
-      ref.current.appendChild(blockquote);
+      blockquote.innerHTML = `<p lang="en" dir="ltr"></p><a href="${fullUrl}"></a>`;
+      ref.current!.appendChild(blockquote);
 
-      // Load Twitter script only once
+      // Load Twitter script once
       if (!document.getElementById('twitter-widgets')) {
         const script = document.createElement('script');
         script.id = 'twitter-widgets';
         script.src = 'https://platform.twitter.com/widgets.js';
         script.async = true;
         document.body.appendChild(script);
+
+        // Force load once script is ready
+        script.onload = () => {
+          if ((window as any).twttr?.widgets) {
+            (window as any).twttr.widgets.load(ref.current!);
+          }
+        };
       } else if ((window as any).twttr?.widgets) {
-        (window as any).twttr.widgets.load(ref.current);
+        (window as any).twttr.widgets.load(ref.current!);
       }
       return;
     }
