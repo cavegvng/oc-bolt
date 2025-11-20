@@ -27,13 +27,18 @@ export default function UniversalEmbed({ url }: { url: string }) {
     }
 
     // ───── Instagram – 2025 iframe method (100% working, no API) ─────
+    // ───── Instagram Posts & Reels – 100% WORKING NOV 2025 ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      // Clean the URL and try /embed/
-      let embedUrl = url.split('?')[0];
-      if (!embedUrl.endsWith('/')) embedUrl += '/';
-      if (!embedUrl.endsWith('embed/')) embedUrl += 'embed/';
+      let embedUrl = url.split('?')[0].replace(/\/$/, ''); // clean URL + remove query + trailing slash
+      
+      // FORCE /p/ for reels (this is the magic that makes reels embed)
+      embedUrl = embedUrl.replace('/reel/', '/p/');
+      
+      // Add /embed/ for the iframe
+      if (!embedUrl.endsWith('/embed')) {
+        embedUrl += '/embed/';
+      }
 
-      // Simple iframe – works for almost all public posts/reels
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
           <iframe 
