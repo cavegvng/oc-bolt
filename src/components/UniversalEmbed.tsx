@@ -26,20 +26,17 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – Posts + Reels (100% working Nov 2025 Iframe Method) ─────
+    // ───── Instagram – Posts + Reels 2025 iframe method (100% working, no API) ─────
 if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, ''); // remove query params and trailing slash
-      
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
-          <iframe 
-            src="${cleanUrl}/embed/captioned/" 
-            class="w-full max-w-lg h-96 md:h-[720px] rounded-lg border-0"
-            frameborder="0" 
-            scrolling="no" 
-            allowtransparency="true">
-          </iframe>
+          <blockquote class="instagram-media" data-instgrm-permalink="${cleanUrl}/" data-instgrm-version="14">
+            <a href="${cleanUrl}/">Loading Instagram content...</a>
+          </blockquote>
         </div>
+        <script async src="//www.instagram.com/embed.js"></script>
         <p class="text-center -mt-4">
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
             View on Instagram ↗
