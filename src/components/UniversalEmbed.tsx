@@ -26,43 +26,47 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – Clean white-box killer + beautiful fallback ─────
+    // ───── Instagram – FINAL (no duplicate link for reels, proper spacing) ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      let embedUrl = url.split('?')[0].replace(/\/$/, '');
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      embedUrl = embedUrl.replace('/reel/', '/p/');
-      if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
-
-      setEmbedHtml(`
-        <div class="my-8 flex justify-center">
-          <div class="relative w-full max-w-lg">
-            <!-- The iframe – hidden if blocked -->
-            <iframe
-              src="${embedUrl}"
-              class="w-full h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-              frameborder="0"
-              scrolling="no"
-              allowtransparency="true"
-              loading="lazy"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            </iframe>
-
-            <!-- Beautiful fallback card – hidden until needed -->
-            <div class="hidden w-full h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8 shadow-2xl">
+      // REELS → beautiful card, no duplicate link at bottom
+      if (cleanUrl.includes('/reel/')) {
+        setEmbedHtml(`
+          <div class="my-12 flex justify-center">   {/* increased margin */}
+            <div class="w-full max-w-lg h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8 shadow-2xl">
               <div class="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mb-6">
                 <svg class="w-12 h-12 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
               </div>
-              <p class="text-xl font-bold text-white">Instagram Reel / Post</p>
-              <p class="text-gray-300 mt-2">Embedding blocked by Instagram</p>
+              <p class="text-xl font-bold text-white">Instagram Reel</p>
+              <p class="text-gray-300 mt-2">Direct embedding disabled by Instagram</p>
               <a href="${url}" target="_blank" rel="noopener noreferrer" class="mt-6 px-8 py-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-full transition shadow-lg">
                 View on Instagram →
               </a>
             </div>
           </div>
+        `);
+        return;
+      }
+
+      // REGULAR POSTS → normal embed + keep the small link at bottom
+      let embedUrl = cleanUrl;
+      if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
+
+      setEmbedHtml(`
+        <div class="my-12 flex justify-center">   {/* increased margin here too */}
+          <iframe
+            src="${embedUrl}"
+            class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
+            frameborder="0"
+            scrolling="no"
+            allowtransparency="true"
+            loading="lazy">
+          </iframe>
         </div>
-        <p class="text-center -mt-4">
+        <p class="text-center -mt-6">   {/* slightly higher so it's not glued */}
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
             View on Instagram ↗
           </a>
