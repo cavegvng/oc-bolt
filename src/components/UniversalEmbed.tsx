@@ -7,49 +7,69 @@ declare global {
   }
 }
 
+import { useEffect, useRef } from 'react';
+
 export default function UniversalEmbed({ url }: { url: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!ref.current || !url) return;
 
-    containerRef.current.innerHTML = '';
+    // Clear anything old
+    ref.current.innerHTML = '';
 
+    // ——— Twitter / X ———
     if (url.includes('x.com') || url.includes('twitter.com')) {
-      containerRef.current.innerHTML = `<blockquote class="twitter-tweet" data-dnt="true"><a href="${url}"></a></blockquote>`;
+      const blockquote = document.createElement('blockquote');
+      blockquote.className = 'twitter-tweet';
+      blockquote.innerHTML = `<a href="${url}">Loading tweet...</a>`;
+      ref.current.appendChild(blockquote);
 
-      const script = document.createElement('script');
-      script.src = 'https://platform.twitter.com/widgets.js';
-      script.async = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        if (window.twttr?.widgets?.load) {
-          window.twttr.widgets.load(containerRef.current);
-        }
-      };
+      // Load Twitter script only once
+      if (!document.getElementById('twitter-script')) {
+        const script = document.createElement('script');
+        script.id = 'twitter-script';
+        script.src = 'https://platform.twitter.com/widgets.js';
+        script.async = true;
+        document.body.appendChild(script);
+      } else if ((window as any).twttr?.widgets) {
+        (window as any).twttr.widgets.load(ref.current);
+      }
+      return;
     }
 
-    else if (url.includes('instagram.com')) {
-      containerRef.current.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${url}"><a href="${url}"></a></blockquote>`;
+    // ——— Instagram ———
+    if (url.includes('instagram.com') || url.includes('instagr.am')) {
+      const div = document.createElement('div');
+      div.className = 'instagram-media';
+      div.setAttribute('data-instgrm-permalink-url', url);
+      div.innerHTML = `<a href="${url}">Loading Instagram post...</a>`;
+      ref.current.appendChild(div);
 
-      const script = document.createElement('script');
-      script.src = 'https://www.instagram.com/embed.js';
-      script.async = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        if (window.instgrm?.Embeds?.process) {
-          window.instgrm.Embeds.process();
-        }
-      };
+      if (!document.getElementById('instagram-script')) {
+        const script = document.createElement('script');
+        script.id = 'instagram-script';
+        script.src = 'https://www.instagram.com/embed.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+      return;
     }
 
-    else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const id = url.includes('v=') ? url.split('v=')[1]?.split('&')[0] : url.split('/').pop();
-      containerRef.current.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" class="w-full aspect-video rounded-lg" allowFullScreen></iframe>`;
+    // ——— YouTube ———
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      if (videoId) {
+        const iframe = document.createElement('iframe');
+        iframe.width = '100%';
+        iframe.height = '400';
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
+        iframe.allowFullscreen = true;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        ref.current.appendChild(iframe);
+      }
     }
   }, [url]);
 
-  return <div ref={containerRef} className="my-8" />;
+  return <div ref={ref} className="my-6" />;
 }
