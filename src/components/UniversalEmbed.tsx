@@ -36,7 +36,6 @@ export default function UniversalEmbed({ url }: { url: string }) {
       setEmbedHtml(`
         <div class="my-8 flex justify-center">
           <div class="relative w-full max-w-lg">
-            <!-- The iframe – hidden if blocked -->
             <iframe
               src="${embedUrl}"
               class="w-full h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
@@ -44,7 +43,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
               scrolling="no"
               allowtransparency="true"
               loading="lazy"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              onload="if (this.contentDocument.body.scrollHeight < 100) { this.style.display='none'; this.nextElementSibling.style.display='flex'; }"> 
             </iframe>
 
             <!-- Beautiful fallback card – hidden until needed -->
