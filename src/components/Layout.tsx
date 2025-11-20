@@ -162,8 +162,8 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      <footer id="footer" className="bg-card border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <footer id="footer" className="bg-card border-t border-border pt-12 mt-24">
+        <div className="max-w-7xl mx-auto px-4 pb-12">   {/* pb-12 instead of py-8 for more bottom room */}
           <div className="text-center">
             <p className="text-muted-foreground mb-2">
               <span className="font-bold">Overly<span className="text-red-600">Concerned</span></span> &mdash; A space for the passionately opinionated
