@@ -26,15 +26,14 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – Clean white-box killer + beautiful fallback ─────
-    // ───── Instagram – Posts embed, Reels get beautiful card (2025-proof) ─────
+    // ───── Instagram – FINAL (no duplicate link for reels, proper spacing) ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // If it's a reel → show beautiful card immediately (no iframe, no white box)
+      // REELS → beautiful card, no duplicate link at bottom
       if (cleanUrl.includes('/reel/')) {
         setEmbedHtml(`
-          <div class="my-8 flex justify-center">
+          <div class="my-12 flex justify-center">   {/* increased margin */}
             <div class="w-full max-w-lg h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8 shadow-2xl">
               <div class="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mb-6">
                 <svg class="w-12 h-12 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,21 +47,16 @@ export default function UniversalEmbed({ url }: { url: string }) {
               </a>
             </div>
           </div>
-          <p class="text-center -mt-4">
-            <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
-              View on Instagram ↗
-            </a>
-          </p>
         `);
         return;
       }
 
-      // Regular posts – keep your working iframe
+      // REGULAR POSTS → normal embed + keep the small link at bottom
       let embedUrl = cleanUrl;
       if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
 
       setEmbedHtml(`
-        <div class="my-8 flex justify-center">
+        <div class="my-12 flex justify-center">   {/* increased margin here too */}
           <iframe
             src="${embedUrl}"
             class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
@@ -72,7 +66,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
             loading="lazy">
           </iframe>
         </div>
-        <p class="text-center -mt-4">
+        <p class="text-center -mt-6">   {/* slightly higher so it's not glued */}
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
             View on Instagram ↗
           </a>
