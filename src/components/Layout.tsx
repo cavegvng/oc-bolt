@@ -162,7 +162,7 @@ export function Layout({ children }: LayoutProps) {
         {children}
       </main>
 
-      <footer id="footer" className="bg-card border-t border-border mt-16 pt-8">   {/* <-- this is the magic */}
+      <footer id="footer" className="bg-card border-t border-border">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-muted-foreground mb-2">
