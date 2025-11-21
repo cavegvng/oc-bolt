@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Star, Megaphone, Pin, Info, Shield, AlertTriangle, Trash2 } from 'lucide-react';
+import { X, Star, Megaphone, Pin, Info, Shield, AlertTriangle, Trash2, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,6 +37,11 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
   const [selectedCategories, setSelectedCategories] = useState<string[]>(discussion.category_ids || []);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    moderation: true,
+    categories: false,
+    danger: false
+  });
 
   useEffect(() => {
     setIsFeatured(discussion.is_featured);
@@ -245,10 +250,17 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
     }
   };
 
+  const toggleSection = (section: 'moderation' | 'categories' | 'danger') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-3xl border border-border max-w-md w-full p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-card rounded-3xl border border-border max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-border flex-shrink-0">
           <div>
             <h2 className="text-xl font-bold text-foreground">Discussion Controls</h2>
             <p className="text-sm text-muted-foreground mt-1">Manage discussion visibility and promotion</p>
@@ -261,236 +273,254 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
           </button>
         </div>
 
-        <div className="space-y-6">
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+        <div className="overflow-y-auto flex-1 px-6 py-4 space-y-3">
+          <div className="border border-border rounded-2xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('moderation')}
+              className="w-full flex items-center justify-between p-4 bg-accent/30 hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-blue-500" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-foreground">Moderation & Visibility</h3>
+                  <p className="text-xs text-muted-foreground">Status, featured, promoted, pinned</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">Moderation Status</span>
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.moderation ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {expandedSections.moderation && (
+              <div className="p-4 space-y-4 bg-card">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-medium text-foreground">Moderation Status</span>
+                    {discussion.report_count > 0 && (
+                      <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {discussion.report_count} report{discussion.report_count !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {(['approved', 'pending', 'quarantined', 'removed'] as ModerationStatus[]).map((status) => (
+                      <label
+                        key={status}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                          moderationStatus === status
+                            ? 'bg-blue-100 dark:bg-blue-900/40 border border-blue-500'
+                            : 'bg-white dark:bg-gray-800 border border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="moderation_status"
+                          value={status}
+                          checked={moderationStatus === status}
+                          onChange={(e) => setModerationStatus(e.target.value as ModerationStatus)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-sm font-medium text-foreground capitalize">{status}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {['quarantined', 'removed'].includes(moderationStatus) && (
+                    <div className="mt-2">
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Reason {['quarantined', 'removed'].includes(moderationStatus) && moderationStatus !== ((discussion.moderation_status as ModerationStatus) || 'approved') && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </label>
+                      <textarea
+                        value={moderationReason}
+                        onChange={(e) => setModerationReason(e.target.value)}
+                        placeholder="Provide a reason for this action..."
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        rows={2}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-500" />
+                    <div>
+                      <span className="font-medium text-foreground text-sm">Featured</span>
+                      <p className="text-xs text-muted-foreground">Display on homepage</p>
+                    </div>
+                  </div>
                   <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Control the visibility and moderation state of this discussion"
+                    onClick={() => setIsFeatured(!isFeatured)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      isFeatured ? 'bg-amber-500' : 'bg-border'
+                    }`}
                   >
-                    <Info className="w-4 h-4" />
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        isFeatured ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">Current: {discussion.moderation_status || 'approved'}</p>
-                {discussion.report_count > 0 && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    {discussion.report_count} report{discussion.report_count !== 1 ? 's' : ''}
-                  </p>
+
+                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-blue-500" />
+                    <div>
+                      <span className="font-medium text-foreground text-sm">Promoted</span>
+                      <p className="text-xs text-muted-foreground">Paid advertising</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsPromoted(!isPromoted)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      isPromoted ? 'bg-blue-500' : 'bg-border'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        isPromoted ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {isPromoted && (
+                  <div className="pl-3 mt-2 space-y-1.5">
+                    <label className="block text-xs font-medium text-foreground">
+                      Expiration Date (Optional)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={promotedEndDate}
+                      onChange={(e) => setPromotedEndDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-muted-foreground">Leave empty for indefinite</p>
+                  </div>
                 )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              {(['approved', 'pending', 'quarantined', 'removed'] as ModerationStatus[]).map((status) => (
-                <label
-                  key={status}
-                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
-                    moderationStatus === status
-                      ? 'bg-blue-100 dark:bg-blue-900/40 border-2 border-blue-500'
-                      : 'bg-white dark:bg-gray-800 border-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="moderation_status"
-                    value={status}
-                    checked={moderationStatus === status}
-                    onChange={(e) => setModerationStatus(e.target.value as ModerationStatus)}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="font-medium text-foreground capitalize">{status}</span>
-                </label>
-              ))}
-            </div>
-            {['quarantined', 'removed'].includes(moderationStatus) && (
-              <div className="mt-3">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Reason {['quarantined', 'removed'].includes(moderationStatus) && moderationStatus !== ((discussion.moderation_status as ModerationStatus) || 'approved') && (
-                    <span className="text-red-500">*</span>
-                  )}
-                </label>
-                <textarea
-                  value={moderationReason}
-                  onChange={(e) => setModerationReason(e.target.value)}
-                  placeholder="Provide a reason for this action..."
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  rows={3}
-                />
+
+                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Pin className="w-4 h-4 text-red-500" />
+                    <div>
+                      <span className="font-medium text-foreground text-sm">Pinned</span>
+                      <p className="text-xs text-muted-foreground">Top of category</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsPinned(!isPinned)}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      isPinned ? 'bg-red-500' : 'bg-border'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        isPinned ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-accent/50 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                <Star className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">Featured</span>
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Feature this discussion prominently on the homepage"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">Display prominently on homepage</p>
-              </div>
-            </div>
+          <div className="border border-border rounded-2xl overflow-hidden">
             <button
-              onClick={() => setIsFeatured(!isFeatured)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                isFeatured ? 'bg-amber-500' : 'bg-border'
-              }`}
+              onClick={() => toggleSection('categories')}
+              className="w-full flex items-center justify-between p-4 bg-accent/30 hover:bg-accent/50 transition-colors"
             >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  isFeatured ? 'translate-x-6' : 'translate-x-0.5'
-                }`}
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-foreground">Category Management</h3>
+                  <p className="text-xs text-muted-foreground">{selectedCategories.length} selected</p>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.categories ? 'rotate-180' : ''}`}
               />
             </button>
+
+            {expandedSections.categories && (
+              <div className="p-4 space-y-3 bg-card">
+                <p className="text-sm text-muted-foreground">
+                  Select 1-3 categories for this discussion
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => {
+                    const isSelected = selectedCategories.includes(category.id);
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedCategories(selectedCategories.filter(id => id !== category.id));
+                          } else {
+                            if (selectedCategories.length < 3) {
+                              setSelectedCategories([...selectedCategories, category.id]);
+                            }
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          isSelected
+                            ? 'text-white border-2 border-transparent'
+                            : 'bg-accent text-foreground border-2 border-border hover:bg-accent/70'
+                        }`}
+                        style={isSelected ? { backgroundColor: category.color } : {}}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedCategories.length === 0 && (
+                  <p className="text-sm text-red-600 dark:text-red-400">At least one category is required</p>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-accent/50 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <Megaphone className="w-5 h-5 text-blue-500" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">Promoted</span>
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Promote this discussion as paid advertising with optional expiration"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">Paid advertising placement</p>
-              </div>
-            </div>
+          <div className="border border-border rounded-2xl overflow-hidden">
             <button
-              onClick={() => setIsPromoted(!isPromoted)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                isPromoted ? 'bg-blue-500' : 'bg-border'
-              }`}
+              onClick={() => toggleSection('danger')}
+              className="w-full flex items-center justify-between p-4 bg-red-50/50 dark:bg-red-900/10 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  isPromoted ? 'translate-x-6' : 'translate-x-0.5'
-                }`}
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <div className="text-left">
+                  <h3 className="font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
+                  <p className="text-xs text-muted-foreground">Permanent actions</p>
+                </div>
+              </div>
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform ${expandedSections.danger ? 'rotate-180' : ''}`}
               />
             </button>
-          </div>
 
-          {isPromoted && (
-            <div className="pl-4 space-y-2">
-              <label className="block text-sm font-medium text-foreground">
-                Expiration Date (Optional)
-              </label>
-              <input
-                type="datetime-local"
-                value={promotedEndDate}
-                onChange={(e) => setPromotedEndDate(e.target.value)}
-                className="w-full px-4 py-2 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-xs text-muted-foreground">Leave empty for indefinite promotion</p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between p-4 bg-accent/50 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                <Pin className="w-5 h-5 text-red-500" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">Pinned</span>
-                  <button
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    title="Pin this discussion to the top of its category page"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">Top of category page</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsPinned(!isPinned)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                isPinned ? 'bg-red-500' : 'bg-border'
-              }`}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  isPinned ? 'translate-x-6' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-
-        <div className="border-t border-border pt-6 mt-6">
-          <h3 className="text-lg font-bold text-foreground mb-4">Category Management</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Update the categories for this discussion. Select 1-3 categories.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => {
-              const isSelected = selectedCategories.includes(category.id);
-              return (
+            {expandedSections.danger && (
+              <div className="p-4 space-y-3 bg-card">
+                <p className="text-sm text-muted-foreground">
+                  Delete this discussion permanently. This action cannot be undone.
+                </p>
                 <button
-                  key={category.id}
-                  onClick={() => {
-                    if (isSelected) {
-                      setSelectedCategories(selectedCategories.filter(id => id !== category.id));
-                    } else {
-                      if (selectedCategories.length < 3) {
-                        setSelectedCategories([...selectedCategories, category.id]);
-                      }
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    isSelected
-                      ? 'text-white border-2 border-transparent'
-                      : 'bg-accent text-foreground border-2 border-border hover:bg-accent/70'
-                  }`}
-                  style={isSelected ? { backgroundColor: category.color } : {}}
+                  onClick={() => setDeleteModalOpen(true)}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-medium rounded-lg transition-colors disabled:opacity-50 w-full justify-center"
                 >
-                  {category.name}
+                  <Trash2 className="w-4 h-4" />
+                  Delete Discussion
                 </button>
-              );
-            })}
+              </div>
+            )}
           </div>
-          {selectedCategories.length === 0 && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">At least one category is required</p>
-          )}
         </div>
 
-        <div className="border-t border-border pt-6 mt-6">
-          <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">Danger Zone</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Delete this discussion permanently. This action cannot be undone.
-          </p>
-          <button
-            onClick={() => setDeleteModalOpen(true)}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-medium rounded-xl transition-colors disabled:opacity-50"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete Discussion
-          </button>
-        </div>
-
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 p-6 pt-4 border-t border-border flex-shrink-0">
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2.5 bg-accent hover:bg-accent/70 text-foreground font-medium rounded-xl transition-colors"
@@ -500,7 +530,7 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
           </button>
           <button
             onClick={handleSave}
-            disabled={loading}
+            disabled={loading || selectedCategories.length === 0}
             className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
           >
             {loading ? 'Saving...' : 'Save Changes'}
