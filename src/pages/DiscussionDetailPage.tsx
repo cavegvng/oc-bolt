@@ -14,9 +14,11 @@ import {
   Settings,
   Edit,
   Loader2,
-  Trash2
+  Trash2,
+  Flag
 } from 'lucide-react';
 import { ModerationModal } from '../components/ModerationModal';
+import { ReportModal } from '../components/ReportModal';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
 import UniversalEmbed from '../components/UniversalEmbed';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
@@ -57,13 +59,16 @@ export function DiscussionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [moderationModalOpen, setModerationModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRestricted, setIsRestricted] = useState(false);
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const canModerateDiscussions = hasRole('super_moderator');
   const isAuthor = user && discussion && user.id === discussion.author_id;
   const canDelete = isAuthor || canModerateDiscussions;
+  const canReport = user && !isAuthor && !canModerateDiscussions;
 
   useEffect(() => {
     if (id) {
@@ -427,6 +432,16 @@ export function DiscussionDetailPage() {
                 <span>Moderation</span>
               </button>
             )}
+            {canReport && (
+              <button
+                onClick={() => setReportModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors group"
+                title="Report inappropriate content"
+              >
+                <Flag className="w-4 h-4 group-hover:text-red-600" />
+                <span>Report</span>
+              </button>
+            )}
             <button
               onClick={handleToggleLike}
               className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-medium transition-colors ${
@@ -520,30 +535,47 @@ export function DiscussionDetailPage() {
               No comments yet. Be the first to share your thoughts!
             </p>
           ) : (
-            comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="border-l-2 border-border pl-6 pb-6"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="font-medium text-foreground">
-                    {comment.users?.username || 'Anonymous'}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatTimeAgo(comment.created_at)}
-                  </span>
+            comments.map((comment) => {
+              const isCommentAuthor = user && comment.user_id === user.id;
+              const canReportComment = user && !isCommentAuthor && !canModerateDiscussions;
+
+              return (
+                <div
+                  key={comment.id}
+                  className="border-l-2 border-border pl-6 pb-6"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-foreground">
+                        {comment.users?.username || 'Anonymous'}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {formatTimeAgo(comment.created_at)}
+                      </span>
+                    </div>
+                    {canReportComment && (
+                      <button
+                        onClick={() => setReportingCommentId(comment.id)}
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                        title="Report comment"
+                      >
+                        <Flag className="w-3.5 h-3.5" />
+                        <span>Report</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-foreground whitespace-pre-wrap">
+                    {comment.content}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-green-600 dark:hover:text-green-400">
+                      <ThumbsUp className="w-4 h-4" />
+                      {comment.upvotes}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-foreground whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-                <div className="flex items-center gap-4 mt-3">
-                  <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-green-600 dark:hover:text-green-400">
-                    <ThumbsUp className="w-4 h-4" />
-                    {comment.upvotes}
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -554,6 +586,24 @@ export function DiscussionDetailPage() {
           isOpen={moderationModalOpen}
           onClose={() => setModerationModalOpen(false)}
           onUpdate={fetchAllData}
+        />
+      )}
+
+      {discussion && reportModalOpen && (
+        <ReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          contentType="discussion"
+          contentId={discussion.id}
+        />
+      )}
+
+      {reportingCommentId && (
+        <ReportModal
+          isOpen={!!reportingCommentId}
+          onClose={() => setReportingCommentId(null)}
+          contentType="comment"
+          contentId={reportingCommentId}
         />
       )}
 
