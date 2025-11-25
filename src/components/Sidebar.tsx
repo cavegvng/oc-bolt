@@ -73,23 +73,18 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
             <Link
               to="/"
               onClick={onClose}
-              className="flex items-center gap-3 transition-all duration-300"
+              className="flex items-center justify-center w-full transition-all duration-300"
             >
-              <div className="w-8 h-8 flex items-center justify-center text-red-600 font-bold text-lg flex-shrink-0">
+              <div className="text-4xl font-black text-red-600 tracking-tight">
                 OC
               </div>
-              {isExpanded && (
-                <span className="text-foreground font-semibold text-sm whitespace-nowrap transition-opacity duration-300">
-                  OverlyConcerned
-                </span>
-              )}
             </Link>
 
             <button
               onClick={onPinToggle}
               className={`
-                hidden md:flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground transition-all
-                ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                hidden md:flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground transition-all duration-300
+                ${isExpanded || isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}
               `}
             >
               <Pin className={`w-4 h-4 transition-transform ${isPinned ? 'rotate-45 fill-current' : ''}`} />
