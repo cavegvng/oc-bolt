@@ -68,7 +68,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       path: '/admin/users',
       label: 'Users',
       icon: <Users className="w-5 h-5" />,
-      minRole: 'super_moderator',
+      minRole: 'moderator',
     },
     {
       path: '/admin/audit-logs',

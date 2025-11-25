@@ -19,6 +19,7 @@ import { ModerationQueuePage } from './admin/pages/moderation-queue-page';
 import { ReportsPage } from './admin/pages/reports-page';
 import { DiscussionsManagementPage } from './admin/pages/discussions-management-page';
 import { HomepageControlsPage } from './admin/pages/homepage-controls-page';
+import { UsersManagementPage } from './admin/pages/users-management-page';
 
 function AppRoutes() {
   const location = useLocation();
@@ -64,6 +65,14 @@ function AppRoutes() {
           element={
             <AdminRoute requiredRole="admin">
               <HomepageControlsPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute requiredRole="moderator">
+              <UsersManagementPage />
             </AdminRoute>
           }
         />

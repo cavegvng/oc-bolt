@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { deleteDiscussion } from '../services/delete-service';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { logModerationAction } from '../services/moderation-service';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'];
 type ModerationStatus = 'approved' | 'pending' | 'quarantined' | 'removed';
@@ -143,6 +144,16 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
               reason: moderationReason.trim(),
             })
           );
+          promises.push(
+            logModerationAction(
+              user.id,
+              moderationStatus === 'quarantined' ? 'quarantine' : 'remove',
+              'discussion',
+              discussion.id,
+              moderationReason.trim(),
+              { old_status: currentStatus, new_status: moderationStatus }
+            )
+          );
         } else if (moderationStatus === 'active' && ['quarantined', 'removed'].includes(currentStatus)) {
           promises.push(
             supabase.from('content_restrictions').insert({
@@ -152,6 +163,27 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
               moderator_id: user.id,
               reason: moderationReason.trim() || 'Content restored by moderator',
             })
+          );
+          promises.push(
+            logModerationAction(
+              user.id,
+              'restore',
+              'discussion',
+              discussion.id,
+              moderationReason.trim() || 'Content restored by moderator',
+              { old_status: currentStatus, new_status: moderationStatus }
+            )
+          );
+        } else if (moderationStatus === 'approved' && currentStatus !== 'approved') {
+          promises.push(
+            logModerationAction(
+              user.id,
+              'approve',
+              'discussion',
+              discussion.id,
+              'Content approved',
+              { old_status: currentStatus, new_status: moderationStatus }
+            )
           );
         }
       }
@@ -166,6 +198,16 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
             'is_featured',
             discussion.is_featured,
             isFeatured
+          )
+        );
+        promises.push(
+          logModerationAction(
+            user.id,
+            'feature',
+            'discussion',
+            discussion.id,
+            isFeatured ? 'Discussion featured' : 'Discussion unfeatured',
+            { is_featured: isFeatured }
           )
         );
         if (isFeatured) {
@@ -208,6 +250,16 @@ export function ModerationModal({ discussion, isOpen, onClose, onUpdate }: Moder
             isPinned
           )
         );
+        promises.push(
+          logModerationAction(
+            user.id,
+            'pin',
+            'discussion',
+            discussion.id,
+            isPinned ? 'Discussion pinned' : 'Discussion unpinned',
+            { is_pinned: isPinned }
+          )
+          );
       }
 
       if (JSON.stringify(selectedCategories) !== JSON.stringify(discussion.category_ids)) {
