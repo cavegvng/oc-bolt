@@ -57,7 +57,7 @@ export function Layout({ children }: LayoutProps) {
         onHoverChange={setSidebarHovered}
       />
 
-      <div className="w-full">
+      <div className="fixed top-0 left-0 right-0 z-50 w-full">
         <HotNowTicker />
       </div>
 
@@ -66,7 +66,7 @@ export function Layout({ children }: LayoutProps) {
           isSidebarExpanded ? 'md:ml-64' : 'md:ml-16'
         }`}
       >
-        <div className="sticky top-0 z-50">
+        <div className="sticky top-0 z-50 pt-8">
           <nav className="bg-card shadow-sm border-b border-border">
             <div className="max-w-7xl mx-auto px-4">
               <div className="flex items-center justify-between h-16">
@@ -205,7 +205,7 @@ export function Layout({ children }: LayoutProps) {
           </nav>
         </div>
 
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <main className="max-w-7xl mx-auto px-4 py-8 mt-8">
           {children}
         </main>
 

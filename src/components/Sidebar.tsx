@@ -73,15 +73,13 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
             <Link
               to="/"
               onClick={onClose}
-              className={`flex items-center gap-3 transition-all duration-300 ${
-                isExpanded ? 'opacity-100' : 'md:opacity-0 opacity-100'
-              }`}
+              className="flex items-center gap-3 transition-all duration-300"
             >
-              <div className="w-8 h-8 flex items-center justify-center text-red-600 font-bold text-lg">
+              <div className="w-8 h-8 flex items-center justify-center text-red-600 font-bold text-lg flex-shrink-0">
                 OC
               </div>
               {isExpanded && (
-                <span className="text-foreground font-semibold text-sm whitespace-nowrap">
+                <span className="text-foreground font-semibold text-sm whitespace-nowrap transition-opacity duration-300">
                   OverlyConcerned
                 </span>
               )}
@@ -116,8 +114,8 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
                     to={item.href}
                     onClick={onClose}
                     className={`
-                      flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
-                      ${active ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'text-foreground hover:bg-accent/50'}
+                      flex items-center gap-3 px-3 py-2.5 transition-all
+                      ${active ? 'text-red-600 dark:text-red-500' : 'text-foreground hover:bg-accent/10'}
                     `}
                   >
                     <Icon className="w-6 h-6 flex-shrink-0" />
@@ -151,8 +149,8 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
                         to={item.href}
                         onClick={onClose}
                         className={`
-                          flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
-                          ${active ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'text-foreground hover:bg-accent/50'}
+                          flex items-center gap-3 px-3 py-2.5 transition-all
+                          ${active ? 'text-red-600 dark:text-red-500' : 'text-foreground hover:bg-accent/10'}
                         `}
                       >
                         <Icon className="w-6 h-6 flex-shrink-0" />
