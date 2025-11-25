@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -57,13 +57,16 @@ export function Layout({ children }: LayoutProps) {
         onHoverChange={setSidebarHovered}
       />
 
+      <div className="w-full">
+        <HotNowTicker />
+      </div>
+
       <div
         className={`transition-all duration-300 ease-in-out ${
           isSidebarExpanded ? 'md:ml-64' : 'md:ml-16'
         }`}
       >
         <div className="sticky top-0 z-50">
-          <HotNowTicker />
           <nav className="bg-card shadow-sm border-b border-border">
             <div className="max-w-7xl mx-auto px-4">
               <div className="flex items-center justify-between h-16">

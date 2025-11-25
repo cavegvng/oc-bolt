@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, Scale, TrendingUp, Users, BarChart3, Flag, Settings, Pin, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,20 +59,17 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
 
       <aside
         className={`
-          fixed left-0 h-full bg-[#0f0f0f] border-r border-white/[0.08] z-40
+          fixed left-0 h-full bg-background border-r border-border z-40
           transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0 top-0 w-full' : '-translate-x-full top-0'}
           md:translate-x-0 md:top-0
           ${isExpanded ? 'md:w-64' : 'md:w-16'}
         `}
-        style={{
-          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 4px 20px rgba(0,0,0,0.5)',
-        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-border">
             <Link
               to="/"
               onClick={onClose}
@@ -80,11 +77,11 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
                 isExpanded ? 'opacity-100' : 'md:opacity-0 opacity-100'
               }`}
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ff6600] to-[#ff3300] flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 flex items-center justify-center text-red-600 font-bold text-lg">
                 OC
               </div>
               {isExpanded && (
-                <span className="text-gray-100 font-semibold text-sm whitespace-nowrap">
+                <span className="text-foreground font-semibold text-sm whitespace-nowrap">
                   OverlyConcerned
                 </span>
               )}
@@ -92,17 +89,17 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
 
             <button
               onClick={onPinToggle}
-              className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-white/[0.05] transition-all"
-              style={{
-                boxShadow: isPinned ? 'inset 0 0 0 1px rgba(255,255,255,0.14), 0 4px 20px rgba(0,0,0,0.5)' : 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 4px 20px rgba(0,0,0,0.5)',
-              }}
+              className={`
+                hidden md:flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground transition-all
+                ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+              `}
             >
-              <Pin className={`w-4 h-4 transition-transform ${isPinned ? 'rotate-45' : ''}`} />
+              <Pin className={`w-4 h-4 transition-transform ${isPinned ? 'rotate-45 fill-current' : ''}`} />
             </button>
 
             <button
               onClick={onClose}
-              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-white/[0.05] transition-all"
+              className="md:hidden flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-foreground transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -120,15 +117,10 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
                     onClick={onClose}
                     className={`
                       flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
-                      ${active ? 'bg-[#ff6600]/20 text-[#ff6600]' : 'text-gray-100 hover:bg-white/[0.05]'}
+                      ${active ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'text-foreground hover:bg-accent/50'}
                     `}
-                    style={{
-                      boxShadow: active
-                        ? 'inset 0 0 0 1px rgba(255,255,255,0.14), 0 4px 20px rgba(0,0,0,0.5)'
-                        : 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 4px 20px rgba(0,0,0,0.5)',
-                    }}
                   >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <Icon className="w-6 h-6 flex-shrink-0" />
                     {isExpanded && (
                       <span className="font-medium text-sm whitespace-nowrap">
                         {item.name}
@@ -142,11 +134,11 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
             {adminNavigation.length > 0 && (
               <>
                 <div className="pt-4 pb-2">
-                  <div className="h-px bg-white/[0.08]" />
+                  <div className="h-px bg-border" />
                 </div>
                 <div className="space-y-1">
                   {isExpanded && (
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Admin
                     </div>
                   )}
@@ -160,15 +152,10 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
                         onClick={onClose}
                         className={`
                           flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
-                          ${active ? 'bg-[#00ff99]/20 text-[#00ff99]' : 'text-gray-100 hover:bg-white/[0.05]'}
+                          ${active ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'text-foreground hover:bg-accent/50'}
                         `}
-                        style={{
-                          boxShadow: active
-                            ? 'inset 0 0 0 1px rgba(255,255,255,0.14), 0 4px 20px rgba(0,0,0,0.5)'
-                            : 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 4px 20px rgba(0,0,0,0.5)',
-                        }}
                       >
-                        <Icon className="w-5 h-5 flex-shrink-0" />
+                        <Icon className="w-6 h-6 flex-shrink-0" />
                         {isExpanded && (
                           <span className="font-medium text-sm whitespace-nowrap">
                             {item.name}
