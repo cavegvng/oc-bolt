@@ -20,6 +20,7 @@ import { ReportsPage } from './admin/pages/reports-page';
 import { DiscussionsManagementPage } from './admin/pages/discussions-management-page';
 import { HomepageControlsPage } from './admin/pages/homepage-controls-page';
 import { UsersManagementPage } from './admin/pages/users-management-page';
+import { AuditLogsPage } from './admin/pages/audit-logs-page';
 
 function AppRoutes() {
   const location = useLocation();
@@ -73,6 +74,14 @@ function AppRoutes() {
           element={
             <AdminRoute requiredRole="moderator">
               <UsersManagementPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <AdminRoute requiredRole="super_moderator">
+              <AuditLogsPage />
             </AdminRoute>
           }
         />
