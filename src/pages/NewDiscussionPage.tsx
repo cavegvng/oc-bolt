@@ -78,30 +78,30 @@ export function NewDiscussionPage() {
     setSubmitting(true);
     setError('');
 
-    try {
-      const allUrls = formData.description.match(/https?:\/\/[^\s<>"']+/g) || [];
-      const twitter_url = allUrls.find(u => /x\.com|twitter\.com/i.test(u) && /status\/\d+/i.test(u)) || null;
-      const instagram_url = allUrls.find(u => /instagram\.com\/(p|reel|tv)\//i.test(u)) || null;
-      const tiktok_url = allUrls.find(u => /tiktok\.com/i.test(u) && /\/video\/\d+/.test(u)) || null;
-      const youtube_url = allUrls.find(u => /youtube\.com|youtu\.be/i.test(u)) || null;
+try {
+  const allUrls = formData.description.match(/https?:\/\/[^\s<>"']+/g) || [];
+  const twitter_url = allUrls.find(u => /x\.com|twitter\.com/i.test(u) && /status\/\d+/i.test(u)) || null;
+  const instagram_url = allUrls.find(u => /instagram\.com\/(p|reel|tv)\//i.test(u)) || null;
+  const tiktok_url = allUrls.find(u => /tiktok\.com/i.test(u) && /\/video\/\d+/.test(u)) || null;
+  const youtube_url = allUrls.find(u => /youtube\.com|youtu\.be/i.test(u)) || null;
 
-      const { data, error: insertError } = await supabase
-        .from('discussions')
-        .insert({
-          author_id: user.id,
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          category_ids: formData.category_ids,
-          image_url: formData.image_url.trim() || null,
-          thumbnail_url: formData.image_url.trim() || null,
-          twitter_url,
-          instagram_url,
-          tiktok_url,
-          youtube_url,
-          moderation_status: 'approved',
-        })
-        .select()
-        .single();
+  const { data, error: insertError } = await supabase
+    .from('discussions')
+    .insert({
+      author_id: user.id,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      category_ids: formData.category_ids,
+      image_url: formData.image_url.trim() || null,
+      thumbnail_url: formData.image_url.trim() || null,
+      twitter_url,
+      instagram_url,
+      tiktok_url,
+      youtube_url,
+      moderation_status: 'approved',
+    })
+    .select()
+    .single();
 
       if (insertError) {
         setError('Failed to create discussion. Please try again.');
