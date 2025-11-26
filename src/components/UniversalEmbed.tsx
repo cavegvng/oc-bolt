@@ -99,10 +99,9 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-     // ───── TikTok – Simple iframe (no script, no blank, Vite/Bolt.new compatible) ─────
+// ───── TikTok – Simple iframe (no script, no blank, Vite/Bolt.new v2 compatible) ─────
     if (url.includes('tiktok.com')) {
-      // Clean URL — remove query params but keep path
-      const cleanUrl = url.split('?')[0];
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
       setEmbedHtml(`
         <div class="my-12 flex justify-center">
@@ -111,13 +110,13 @@ export default function UniversalEmbed({ url }: { url: string }) {
             class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
             scrolling="no"
             allowFullScreen
-            allow="fullscreen; encrypted-media; picture-in-picture"
+            allow="encrypted-media; fullscreen; picture-in-picture"
             title="TikTok Video">
           </iframe>
         </div>
         <p class="text-center -mt-6">
           <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok ↗
+            View on TikTok
           </a>
         </p>
       `);
