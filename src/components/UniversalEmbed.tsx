@@ -99,6 +99,28 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
+    // ───── TikTok – 100% working, official embed ─────
+    if (url.includes('tiktok.com')) {
+      const cleanUrl = url.split('?')[0]; // remove any query params
+
+      setEmbedHtml(`
+        <div class="my-12 flex justify-center">
+          <blockquote class="tiktok-embed" cite="${cleanUrl}" data-video-id="${cleanUrl.split('/').pop()}" style="max-width: 605px; width: 100%;">
+            <section>
+              <a target="_blank" rel="noopener noreferrer" href="${cleanUrl}">View on TikTok</a>
+            </section>
+          </blockquote>
+          <script async src="https://www.tiktok.com/embed.js"></script>
+        </div>
+        <p class="text-center -mt-6">
+          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
+            View on TikTok ↗
+          </a>
+        </p>
+      `);
+      return;
+    }
+
     // Fallback
     setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`);
 
