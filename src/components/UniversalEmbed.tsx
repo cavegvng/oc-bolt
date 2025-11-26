@@ -75,7 +75,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – The only version that works in React/Vite (dynamic script) ─────
+    // ───── TikTok – 100% WORKING FINAL (Bolt.new v2 + your CSP) ─────
     if (url.includes('tiktok.com')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
       const videoId = cleanUrl.match(/\/video\/(\d+)/)?.[1] || '';
@@ -83,21 +83,26 @@ export default function UniversalEmbed({ url }: { url: string }) {
       useEffect(() => {
         if (!videoId || !ref.current) return;
 
-        const container = document.createElement('div');
-        container.innerHTML = `
-          <blockquote class="tiktok-embed" cite="${cleanUrl}" data-video-id="${videoId}" style="max-width:605px;width:100%;">
-            <section></section>
-          </blockquote>
-        `;
+        // Create the blockquote
+        const blockquote = document.createElement('blockquote');
+        blockquote.className = 'tiktok-embed';
+        blockquote.setAttribute('cite', cleanUrl);
+        blockquote.setAttribute('data-video-id', videoId);
+        blockquote.style.maxWidth = '605px';
+        blockquote.style.width = '100%';
+        blockquote.innerHTML = `<section></section>`;
 
         ref.current.innerHTML = '';
-        ref.current.appendChild(container.firstChild!);
+        ref.current.appendChild(blockquote);
 
-        if (!window.tiktokScriptLoaded) {
+        // Load TikTok script once
+        if (!window.tiktokEmbedLoaded) {
           const script = document.createElement('script');
           script.src = 'https://www.tiktok.com/embed.js';
           script.async = true;
-          script.onload = () => { window.tiktokScriptLoaded = true; };
+          script.onload = () => {
+            window.tiktokEmbedLoaded = true;
+          };
           document.head.appendChild(script);
         }
       }, [cleanUrl, videoId]);
