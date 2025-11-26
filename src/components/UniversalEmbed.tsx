@@ -99,29 +99,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-// ───── TikTok – Simple iframe (no script, no blank, Vite/Bolt.new v2 compatible) ─────
-    if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      setEmbedHtml(`
-        <div class="my-12 flex justify-center">
-          <iframe
-            src="${cleanUrl}"
-            class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-            scrolling="no"
-            allowFullScreen
-            allow="encrypted-media; fullscreen; picture-in-picture"
-            title="TikTok Video">
-          </iframe>
-        </div>
-        <p class="text-center -mt-6">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok
-          </a>
-        </p>
-      `);
-      return;
-    }
 
         // Fallback link
         const fallback = document.createElement('p');
