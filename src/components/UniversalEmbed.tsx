@@ -76,33 +76,26 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Simple iframe (no hooks, no crash, working preview) ─────
-    if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+    // TikTok — dynamic script, hooks at top level
+    if (isTikTok && tikTokVideoId) {
+      const blockquote = document.createElement('blockquote');
+      blockquote.className = 'tiktok-embed';
+      blockquote.setAttribute('cite', cleanTikTokUrl);
+      blockquote.setAttribute('data-video-id', tikTokVideoId);
+      blockquote.style.maxWidth = '605px';
+      blockquote.style.width = '100%';
+      blockquote.innerHTML = '<section></section>';
 
-      setEmbedHtml(`
-        <div class="my-12 flex justify-center">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="block w-full max-w-lg">
-            <div class="bg-gray-900 rounded-lg overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-shadow">
-              <div class="relative w-full h-96 bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                <div class="absolute inset-0 bg-black/20"></div>
-                <svg class="w-16 h-16 text-white relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </div>
-              <div class="p-6 text-center">
-                <p class="text-white font-semibold text-lg">TikTok Video</p>
-                <p class="text-gray-300 text-sm mt-1">Tap to view on TikTok</p>
-              </div>
-            </div>
-          </a>
-        </div>
-        <p class="text-center -mt-6">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok ↗
-          </a>
-        </p>
-      `);
+      ref.current.innerHTML = '';
+      ref.current.appendChild(blockquote);
+
+      if (!window.tiktokScriptLoaded) {
+        const script = document.createElement('script');
+        script.src = 'https://www.tiktok.com/embed.js';
+        script.async = true;
+        script.onload = () => { window.tiktokScriptLoaded = true; };
+        document.head.appendChild(script);
+      }
       return;
     }
 
