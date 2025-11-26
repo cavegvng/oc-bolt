@@ -102,7 +102,7 @@ export function DiscussionDetailPage() {
 
       const { data, error } = await supabase
         .from('discussions')
-        .select('*, users!discussions_author_id_fkey(username, avatar_url)')
+        .select('*, users!discussions_author_id_fkey(username, avatar_url),tiktok_url')
         .eq('id', id!)
         .maybeSingle();
 
