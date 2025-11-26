@@ -67,7 +67,7 @@ export function Layout({ children }: LayoutProps) {
         }`}
       >
         <div className="sticky top-8 z-40">
-          <nav className="bg-card shadow-sm border-t border-border/70 border-b border-border">
+          <nav className="bg-card shadow-sm border-b border-border">
             <div className="max-w-7xl mx-auto px-4">
               <div className="flex items-center justify-between h-16">
                 <Link to="/" className="flex items-center gap-3 group">
