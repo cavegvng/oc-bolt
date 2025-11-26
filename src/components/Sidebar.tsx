@@ -59,10 +59,10 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
 
       <aside
         className={`
-          fixed left-0 h-full bg-background border-r border-border z-40
+          fixed top-8 left-0 bottom-8 h-[calc(100vh-64px)] bg-background border-r border-border z-30
           transition-all duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0 top-0 w-full' : '-translate-x-full top-0'}
-          md:translate-x-0 md:top-0
+          ${isOpen ? 'translate-x-0 w-full' : '-translate-x-full'}
+          md:translate-x-0
           ${isExpanded ? 'md:w-64' : 'md:w-16'}
         `}
         onMouseEnter={handleMouseEnter}
