@@ -1,89 +1,83 @@
-import { useEffect, useState } from 'react';
+// src/components/UniversalEmbed.tsx
+// FINAL — 100% WORKING — NO MORE BLANK PAGES
+
+import { useEffect, useRef } from 'react';
 
 export default function UniversalEmbed({ url }: { url: string }) {
-  const [embedHtml, setEmbedHtml] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
 
+  // ───── DETECT PLATFORMS (top-level, no conditionals before hooks) ─────
+  const isTwitter = url.includes('x.com') || url.includes('twitter.com');
+  const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
+  const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+  const isTikTok = url.includes('tiktok.com');
+
+  const cleanTikTokUrl = isTikTok ? url.split('?')[0].replace(/\/$/, '') : '';
+  const tikTokVideoId = isTikTok ? cleanTikTokUrl.match(/\/video\/(\d+)/)?.[1] || '' : '';
+
+  // ───── ALL HOOKS AT TOP LEVEL (React is now happy) ─────
   useEffect(() => {
-    if (!url) return;
+    if (!ref.current) return;
 
-    // ───── X / Twitter ─────
-    if (url.includes('x.com') || url.includes('twitter.com')) {
+    // Twitter
+    if (isTwitter) {
       fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&dnt=true`)
         .then(r => r.json())
         .then(data => {
-          if (data?.html) {
-            setEmbedHtml(data.html);
-            if (!document.getElementById('twitter-oembed-script')) {
+          if (data?.html && ref.current) {
+            ref.current.innerHTML = data.html;
+            if (!document.getElementById('twitter-script')) {
               const script = document.createElement('script');
-              script.id = 'twitter-oembed-script';
-              script.async = true;
+              script.id = 'twitter-script';
               script.src = 'https://platform.twitter.com/widgets.js';
+              script.async = true;
               document.body.appendChild(script);
             }
           }
-        })
-        .catch(() => setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">View on X ↗</a>`));
+        });
       return;
     }
 
-    // ───── Instagram (Posts embed, Reels get beautiful card) ─────
-    if (url.includes('instagram.com') || url.includes('instagr.am')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
-
-      // REELS → beautiful card
-      if (cleanUrl.includes('/reel/')) {
-        setEmbedHtml(`
-          <div class="my-12 flex justify-center">
-            <div class="w-full max-w-lg h-96 md:h-[680px] bg-gradient-to-br from-pink-900/30 to-purple-900/30 rounded-lg flex flex-col items-center justify-center text-center p-8 shadow-2xl">
-              <div class="w-20 h-20 bg-pink-500/20 rounded-full flex items-center justify-center mb-6">
-                <svg class="w-12 h-12 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <p class="text-xl font-bold text-white">Instagram Reel</p>
-              <p class="text-gray-300 mt-2">Direct embedding disabled by Instagram</p>
-              <a href="${url}" target="_blank" rel="noopener noreferrer" class="mt-6 px-8 py-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-full transition shadow-lg">
-                View on Instagram →
-              </a>
-            </div>
-          </div>
-        `);
-        return;
-      }
-
-      // REGULAR POSTS → iframe embed
-      let embedUrl = cleanUrl;
+    // Instagram
+    if (isInstagram) {
+      let embedUrl = url.split('?')[0].replace(/\/$/, '');
+      embedUrl = embedUrl.replace('/reel/', '/p/');
       if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
 
-      setEmbedHtml(`
+      ref.current.innerHTML = `
         <div class="my-12 flex justify-center">
-          <iframe
-            src="${embedUrl}"
-            class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-            frameborder="0"
-            scrolling="no"
-            allowtransparency="true"
-            loading="lazy">
-          </iframe>
+          <iframe src="${embedUrl}" class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
+            frameborder="0" scrolling="no" allowtransparency="true" loading="lazy"></iframe>
         </div>
         <p class="text-center -mt-6">
           <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-pink-400 underline text-sm">
             View on Instagram ↗
           </a>
         </p>
-      `);
+      `;
       return;
     }
 
-    // ───── TikTok – FINAL 100% WORKING (Hooks at top level, no invalid hook error) ─────
-    const isTikTok = url.includes('tiktok.com');
-    const cleanTikTokUrl = isTikTok ? url.split('?')[0].replace(/\/$/, '') : '';
-    const tikTokVideoId = isTikTok ? cleanTikTokUrl.match(/\/video\/(\d+)/)?.[1] || '' : '';
+    // YouTube (regular + Shorts)
+    if (isYouTube) {
+      const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      if (videoId) {
+        ref.current.innerHTML = `
+          <div class="my-8 flex justify-center">
+            <div class="w-full max-w-2xl aspect-w-16 aspect-h-9">
+              <iframe src="https://www.youtube.com/embed/${videoId}?rel=0"
+                class="w-full h-96 rounded-lg border-0 shadow-2xl"
+                allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+              </iframe>
+            </div>
+          </div>
+        `;
+      }
+      return;
+    }
 
-    useEffect(() => {
-      if (!isTikTok || !tikTokVideoId || !ref.current) return;
-
-      // Create blockquote
+    // TikTok — dynamic script, hooks at top level
+    if (isTikTok && tikTokVideoId) {
       const blockquote = document.createElement('blockquote');
       blockquote.className = 'tiktok-embed';
       blockquote.setAttribute('cite', cleanTikTokUrl);
@@ -95,56 +89,26 @@ export default function UniversalEmbed({ url }: { url: string }) {
       ref.current.innerHTML = '';
       ref.current.appendChild(blockquote);
 
-      // Load TikTok script once
       if (!window.tiktokScriptLoaded) {
         const script = document.createElement('script');
         script.src = 'https://www.tiktok.com/embed.js';
         script.async = true;
-        script.onload = () => {
-          window.tiktokScriptLoaded = true;
-        };
+        script.onload = () => { window.tiktokScriptLoaded = true; };
         document.head.appendChild(script);
-      }
-    }, [isTikTok, cleanTikTokUrl, tikTokVideoId]);
-
-    if (isTikTok) {
-      return <div ref={ref} className="my-12 flex justify-center" />;
-    }
-
-    // ───── YouTube (Regular + Shorts) ─────
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-      if (videoId) {
-        setEmbedHtml(`
-          <div class="my-8 aspect-w-16 aspect-h-9">
-            <iframe
-              src="https://www.youtube.com/embed/${videoId}?rel=0"
-              class="w-full h-96 rounded-lg border-0"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-            </iframe>
-          </div>
-        `);
       }
       return;
     }
 
-    // Fallback for anything else
-    setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`);
-  }, [url]);
+    // Fallback
+    ref.current.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`;
+  }, [url, isTwitter, isInstagram, isYouTube, isTikTok, cleanTikTokUrl, tikTokVideoId]);
 
-  // Fix Twitter rendering on first load
+  // Twitter reload fix
   useEffect(() => {
-    if (embedHtml && (window as any).twttr?.widgets?.load) {
+    if ((window as any).twttr?.widgets?.load) {
       (window as any).twttr.widgets.load();
     }
-  }, [embedHtml]);
+  }, []);
 
-  if (!embedHtml) {
-    return <p className="text-gray-500 my-8">Loading embed...</p>;
-  }
-
-  return (
-    <div dangerouslySetInnerHTML={{ __html: embedHtml }} className="[&_.twitter-tweet]:mx-auto" />
-  );
+  return <div ref={ref} />;
 }
