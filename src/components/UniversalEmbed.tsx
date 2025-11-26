@@ -94,7 +94,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
         script.src = 'https://www.tiktok.com/embed.js';
         script.async = true;
         script.onload = () => { window.tiktokScriptLoaded = true; };
-        document.head.appendChild(script);
+        document.body.appendChild(script);
       }
       return;
     }
