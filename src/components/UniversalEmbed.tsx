@@ -99,25 +99,32 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Direct iframe (no script, works every time) ─────
+// ───── TikTok – Static preview (no script, no blank, clickable) ─────
     if (url.includes('tiktok.com')) {
       // Clean URL — remove query params
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Extract video ID from /video/ID
+      // Extract video ID
       const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
       const videoId = videoIdMatch ? videoIdMatch[1] : '';
 
       if (videoId) {
         setEmbedHtml(`
           <div class="my-12 flex justify-center">
-            <iframe
-              src="https://www.tiktok.com/embed/v2/${videoId}"
-              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-              scrolling="no"
-              allowFullScreen
-              allow="encrypted-media; fullscreen; picture-in-picture">
-            </iframe>
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="block w-full max-w-lg">
+              <div class="relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-shadow">
+                <div class="relative w-full h-96 md:h-[680px] bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                  <img src="https://img.tttiks.com/thumb/${videoId}" alt="TikTok Preview" class="absolute inset-0 w-full h-full object-cover opacity-50" />
+                  <div class="relative z-10 text-center">
+                    <svg class="w-16 h-16 text-white mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <p class="text-white font-semibold text-lg">TikTok Video</p>
+                    <p class="text-gray-300 text-sm mt-1">Tap to play on TikTok</p>
+                  </div>
+                </div>
+              </div>
+            </a>
           </div>
           <p class="text-center -mt-6">
             <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
@@ -126,7 +133,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
           </p>
         `);
       } else {
-        // Fallback for invalid URLs
+        // Fallback link
         setEmbedHtml(`
           <p class="text-center my-12 text-gray-400">
             <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
