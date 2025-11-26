@@ -6,7 +6,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
   useEffect(() => {
     if (!url) return;
 
-    // ───── X / Twitter (still perfect with oEmbed) ─────
+    // ───── X / Twitter ─────
     if (url.includes('x.com') || url.includes('twitter.com')) {
       fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&dnt=true`)
         .then(r => r.json())
@@ -26,11 +26,11 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── Instagram – Posts embed, Reels get beautiful card (no duplicate link, proper spacing) ─────
+    // ───── Instagram (Posts embed, Reels get beautiful card) ─────
     if (url.includes('instagram.com') || url.includes('instagr.am')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // REELS → beautiful card, no duplicate link
+      // REELS → beautiful card
       if (cleanUrl.includes('/reel/')) {
         setEmbedHtml(`
           <div class="my-12 flex justify-center">
@@ -51,7 +51,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
         return;
       }
 
-      // REGULAR POSTS → embed + small link
+      // REGULAR POSTS → iframe embed
       let embedUrl = cleanUrl;
       if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
 
@@ -74,47 +74,27 @@ export default function UniversalEmbed({ url }: { url: string }) {
       `);
       return;
     }
-    
-    // ───── YouTube (Regular + Shorts) – 100% working ─────
+
+    // ───── YouTube (Regular + Shorts) ─────
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      // Updated regex: now catches /shorts/VIDEO_ID too
       const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-      
       if (videoId) {
         setEmbedHtml(`
-          <div class="my-8 flex justify-center">
-            <div class="w-full max-w-2xl">
-              <div class="aspect-w-16 aspect-h-9">
-                <iframe
-                  src="https://www.youtube.com/embed/${videoId}?rel=0"
-                  class="w-full h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-                </iframe>
-              </div>
-            </div>
+          <div class="my-8 aspect-w-16 aspect-h-9">
+            <iframe
+              src="https://www.youtube.com/embed/${videoId}?rel=0"
+              class="w-full h-96 rounded-lg border-0"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
           </div>
         `);
       }
       return;
     }
 
-
-
-        // Fallback link
-        const fallback = document.createElement('p');
-        fallback.className = 'text-center -mt-6';
-        fallback.innerHTML = `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">View on TikTok ↗</a>`;
-        ref.current.appendChild(fallback);
-      } else {
-        ref.current.innerHTML = `<p class="text-center my-12 text-gray-400"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">View on TikTok</a></p>`;
-      }
-      return;
-    }
-    
-    // Fallback
+    // Fallback for anything else
     setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`);
-
   }, [url]);
 
   // Fix Twitter rendering on first load
@@ -124,7 +104,11 @@ export default function UniversalEmbed({ url }: { url: string }) {
     }
   }, [embedHtml]);
 
-  if (!embedHtml) return <p className="text-gray-500 my-8">Loading embed...</p>;
+  if (!embedHtml) {
+    return <p className="text-gray-500 my-8">Loading embed...</p>;
+  }
 
-  return <div dangerouslySetInnerHTML={{ __html: embedHtml }} className="[&_.twitter-tweet]:mx-auto" />;
+  return (
+    <div dangerouslySetInnerHTML={{ __html: embedHtml }} className="[&_.twitter-tweet]:mx-auto" />
+  );
 }
