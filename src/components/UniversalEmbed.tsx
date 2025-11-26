@@ -107,16 +107,9 @@ export default function UniversalEmbed({ url }: { url: string }) {
     //   return <div ref={ref} className="my-12 flex justify-center" />;
     // }
 
-// ───── Fallback – only show link for unsupported URLs (TikTok stays silent) ─────
-    if (!isTwitter && !isInstagram && !isYouTube && !isTikTok) {
-      setEmbedHtml(`
-        <p class="text-center my-12">
-          <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline text-sm hover:text-blue-300">
-            ${url}
-          </a>
-        </p>
-      `);
-    }
+    // Fallback
+    ref.current.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`;
+  }, [url, isTwitter, isInstagram, isYouTube, isTikTok, cleanTikTokUrl, tikTokVideoId]);
 
   // Twitter reload fix
   useEffect(() => {
