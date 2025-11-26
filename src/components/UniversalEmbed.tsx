@@ -99,7 +99,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – With CSP fix (blockquote + script) ─────
+    // ───── TikTok – Dynamic script load (Bolt.new v2 compatible) ─────
     if (url.includes('tiktok.com')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
@@ -108,6 +108,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
       const videoId = videoIdMatch ? videoIdMatch[1] : '';
 
       if (videoId) {
+        // Create blockquote
         const blockquote = document.createElement('blockquote');
         blockquote.className = 'tiktok-embed';
         blockquote.setAttribute('cite', cleanUrl);
@@ -119,16 +120,29 @@ export default function UniversalEmbed({ url }: { url: string }) {
         ref.current.innerHTML = '';
         ref.current.appendChild(blockquote);
 
-        // Append script to head (Vite allows)
-        if (!document.getElementById('tiktok-script')) {
+        // Load TikTok script dynamically (once per page)
+        if (!document.getElementById('tiktok-embed-script')) {
           const script = document.createElement('script');
-          script.id = 'tiktok-script';
+          script.id = 'tiktok-embed-script';
           script.src = 'https://www.tiktok.com/embed.js';
           script.async = true;
-          document.head.appendChild(script);
+          script.onload = () => {
+            // Force load the embed
+            if (window.TiktokEmbed) {
+              window.TiktokEmbed.load(ref.current);
+            }
+          };
+          document.head.appendChild(script);  // Append to head (Vercel allows)
+        } else {
+          // Script loaded — force reload
+          setTimeout(() => {
+            if (window.TiktokEmbed) {
+              window.TiktokEmbed.load(ref.current);
+            }
+          }, 500);
         }
 
-        // Fallback
+        // Fallback link
         const fallback = document.createElement('p');
         fallback.className = 'text-center -mt-6';
         fallback.innerHTML = `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">View on TikTok ↗</a>`;
