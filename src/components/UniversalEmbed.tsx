@@ -75,40 +75,71 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-        // ───── TikTok – 100% WORKING in Bolt.new v2 (iframe with player endpoint) ─────
+    // ───── TikTok – oEmbed Fetch (official, no blank, full embed) ─────
     if (url.includes('tiktok.com')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Extract video ID from /video/ID
-      const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : '';
-
-      if (videoId) {
-        setEmbedHtml(`
-          <div class="my-12 flex justify-center">
-            <iframe
-              src="https://www.tiktok.com/player/v2/${videoId}?autoplay=0&muted=0"
-              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-              scrolling="no"
-              allowFullScreen
-              allow="encrypted-media; fullscreen; picture-in-picture">
-            </iframe>
+      // Show loading spinner immediately
+      ref.current.innerHTML = `
+        <div class="my-12 flex justify-center items-center h-96 bg-gray-900 rounded-lg shadow-2xl">
+          <div class="text-center">
+            <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+            <p class="text-gray-400">Loading TikTok...</p>
           </div>
-          <p class="text-center -mt-6">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-              View on TikTok →
-            </a>
-          </p>
-        `);
-      } else {
-        setEmbedHtml(`
-          <p class="text-center my-12 text-gray-400">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
-              View on TikTok
-            </a>
-          </p>
-        `);
-      }
+        </div>
+      `;
+
+      // Fetch official embed HTML from TikTok oEmbed API
+      fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.html) {
+            ref.current.innerHTML = data.html; // Official blockquote + description/hashtags/sound
+
+            // Load TikTok script dynamically to body (bypasses React stripping)
+            if (!document.getElementById('tiktok-embed-script')) {
+              const script = document.createElement('script');
+              script.id = 'tiktok-embed-script';
+              script.src = 'https://www.tiktok.com/embed.js';
+              script.async = true;
+              script.onload = () => {
+                // Force TikTok to process the blockquote
+                if (window.TiktokEmbed) {
+                  window.TiktokEmbed.load(ref.current);
+                }
+              };
+              document.body.appendChild(script);
+            } else {
+              // Script already loaded — force process
+              setTimeout(() => {
+                if (window.TiktokEmbed) {
+                  window.TiktokEmbed.load(ref.current);
+                }
+              }, 500);
+            }
+          } else {
+            // Fallback if no HTML
+            ref.current.innerHTML = `
+              <div class="my-12 text-center">
+                <p class="text-gray-400">TikTok embed unavailable</p>
+                <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline block mt-2">
+                  View on TikTok →
+                </a>
+              </div>
+            `;
+          }
+        })
+        .catch(() => {
+          // Network fallback
+          ref.current.innerHTML = `
+            <div class="my-12 text-center">
+              <p class="text-gray-400">TikTok embed unavailable</p>
+              <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline block mt-2">
+                View on TikTok →
+              </a>
+            </div>
+          `;
+        });
       return;
     }
 
