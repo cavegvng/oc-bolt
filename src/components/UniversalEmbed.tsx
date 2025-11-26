@@ -99,44 +99,39 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – 100% working, official embed ─────
-if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+// ───── TikTok – Handles all formats (video, shorts, with query params) ─────
+    if (url.includes('tiktok.com')) {
+      let cleanUrl = url.split('?')[0]; // Remove query params (e.g., ?is_from_webapp=1)
+      cleanUrl = cleanUrl.replace(/\/$/, ''); // Remove trailing slash
+
+      // Extract VIDEO_ID for data-video-id (handles /video/VIDEO_ID or shortcodes)
+      let videoId = cleanUrl.match(/\/video\/([0-9]+)/)?.[1]; // Standard video ID
+      if (!videoId) videoId = cleanUrl.split('/').pop() || ''; // Fallback for shortcodes
 
       setEmbedHtml(`
         <div class="my-12 flex justify-center">
           <div class="w-full max-w-lg">
-            <!-- Loading placeholder -->
-            <div class="h-96 md:h-[680px] bg-gray-900 rounded-lg flex items-center justify-center">
-              <div class="text-center">
-                <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="text-gray-400">Loading TikTok...</p>
-              </div>
-            </div>
-
-            <!-- Real TikTok embed (replaces loading on script load) -->
             <blockquote 
               class="tiktok-embed" 
               cite="${cleanUrl}" 
-              data-video-id="${cleanUrl.split('/').pop()}" 
+              data-video-id="${videoId}" 
               style="max-width: 605px; width: 100%;">
-              <section></section>
+              <section>
+                <a target="_blank" rel="noopener noreferrer" href="${cleanUrl}">View on TikTok</a>
+              </section>
             </blockquote>
           </div>
         </div>
-
-        <!-- Fallback link -->
         <p class="text-center -mt-6">
           <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok
+            View on TikTok ↗
           </a>
         </p>
-
         <script async src="https://www.tiktok.com/embed.js"></script>
       `);
       return;
     }
-
+    
     // Fallback
     setEmbedHtml(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`);
 
