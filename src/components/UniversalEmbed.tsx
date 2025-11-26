@@ -75,6 +75,43 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
+        // ───── TikTok – 100% WORKING in Bolt.new v2 (iframe with player endpoint) ─────
+    if (url.includes('tiktok.com')) {
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+
+      // Extract video ID from /video/ID
+      const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
+      const videoId = videoIdMatch ? videoIdMatch[1] : '';
+
+      if (videoId) {
+        setEmbedHtml(`
+          <div class="my-12 flex justify-center">
+            <iframe
+              src="https://www.tiktok.com/player/v2/${videoId}?autoplay=0&muted=0"
+              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
+              scrolling="no"
+              allowFullScreen
+              allow="encrypted-media; fullscreen; picture-in-picture">
+            </iframe>
+          </div>
+          <p class="text-center -mt-6">
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
+              View on TikTok →
+            </a>
+          </p>
+        `);
+      } else {
+        setEmbedHtml(`
+          <p class="text-center my-12 text-gray-400">
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
+              View on TikTok
+            </a>
+          </p>
+        `);
+      }
+      return;
+    }
+
     // ───── YouTube (Regular + Shorts) ─────
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
