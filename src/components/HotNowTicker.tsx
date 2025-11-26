@@ -53,7 +53,7 @@ export function HotNowTicker() {
   }));
 
   return (
-    <div className="bg-gray-100 dark:bg-card border-b border-border/70 overflow-hidden relative">
+    <div className="bg-gray-100 dark:bg-card border-b border-border overflow-hidden relative">
       <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5 dark:block hidden pointer-events-none"></div>
       <div className="flex items-center h-10 relative z-10">
         <div className="flex-shrink-0 px-4 flex items-center gap-2 h-full">

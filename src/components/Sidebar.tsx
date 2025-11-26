@@ -59,7 +59,7 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
 
       <aside
         className={`
-          fixed left-0 h-full bg-background border-r border-border z-30
+          fixed left-0 h-full bg-background border-r border-border z-40
           transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0 top-0 w-full' : '-translate-x-full top-0'}
           md:translate-x-0 md:top-0
