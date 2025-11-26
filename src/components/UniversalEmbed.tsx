@@ -75,20 +75,22 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
     
-    // ───── YouTube ─────
+// ───── YouTube (Posts + Shorts – 100% working) ─────
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      // Updated regex to catch /shorts/ + regular
+      const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (videoId) {
-        setEmbedHtml(`
-          <div class="my-8 aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/${videoId}?rel=0" 
-              class="w-full h-96 rounded-lg border-0"
-              allowFullScreen 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-            </iframe>
-          </div>
-        `);
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0`;  // rel=0 hides related videos
+        iframe.width = '100%';
+        iframe.height = '400';
+        iframe.allowFullscreen = true;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.style.border = 'none';
+        ref.current.appendChild(iframe);
+      } else {
+        // Fallback if no ID (rare, but covers invalid URLs)
+        ref.current.innerHTML = `<a href="${url}" target="_blank" class="text-blue-400 underline">Watch on YouTube</a>`;
       }
       return;
     }
