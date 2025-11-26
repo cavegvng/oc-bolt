@@ -107,9 +107,16 @@ export default function UniversalEmbed({ url }: { url: string }) {
     //   return <div ref={ref} className="my-12 flex justify-center" />;
     // }
 
-    // Fallback
-    ref.current.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`;
-  }, [url, isTwitter, isInstagram, isYouTube, isTikTok, cleanTikTokUrl, tikTokVideoId]);
+// ───── Fallback – only show raw link if it's NOT one of the supported platforms ─────
+    if (!isTwitter && !isInstagram && !isYouTube && !isTikTok) {
+      setEmbedHtml(`
+        <p class="text-center my-12">
+          <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline text-sm">
+            ${url}
+          </a>
+        </p>
+      `);
+    }
 
   // Twitter reload fix
   useEffect(() => {
