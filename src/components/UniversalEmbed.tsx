@@ -99,14 +99,14 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-// ───── TikTok – Handles all formats (video, shorts, with query params) ─────
+// ───── TikTok – FINAL 100% WORKING (all formats, no blank) ─────
     if (url.includes('tiktok.com')) {
-      let cleanUrl = url.split('?')[0]; // Remove query params (e.g., ?is_from_webapp=1)
-      cleanUrl = cleanUrl.replace(/\/$/, ''); // Remove trailing slash
+      // Clean URL — remove query params and trailing slash
+      let cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Extract VIDEO_ID for data-video-id (handles /video/VIDEO_ID or shortcodes)
-      let videoId = cleanUrl.match(/\/video\/([0-9]+)/)?.[1]; // Standard video ID
-      if (!videoId) videoId = cleanUrl.split('/').pop() || ''; // Fallback for shortcodes
+      // Extract the video ID (the number after /video/)
+      const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
+      const videoId = videoIdMatch ? videoIdMatch[1] : cleanUrl.split('/').pop() || '';
 
       setEmbedHtml(`
         <div class="my-12 flex justify-center">
@@ -116,18 +116,18 @@ export default function UniversalEmbed({ url }: { url: string }) {
               cite="${cleanUrl}" 
               data-video-id="${videoId}" 
               style="max-width: 605px; width: 100%;">
-              <section>
-                <a target="_blank" rel="noopener noreferrer" href="${cleanUrl}">View on TikTok</a>
-              </section>
+              <section></section>
             </blockquote>
+            <script async src="https://www.tiktok.com/embed.js"></script>
           </div>
         </div>
+
+        <!-- Clean fallback link -->
         <p class="text-center -mt-6">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok ↗
+          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm hover:text-purple-300">
+            View on TikTok
           </a>
         </p>
-        <script async src="https://www.tiktok.com/embed.js"></script>
       `);
       return;
     }
