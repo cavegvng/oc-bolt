@@ -76,35 +76,36 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Pro thumbnail preview (recommended forever) ─────
-    if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
-
-      setEmbedHtml(`
-        <div class="my-12 flex justify-center">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="block w-full max-w-lg group">
-            <div class="relative bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-lg overflow-hidden shadow-2xl hover:shadow-purple-500/30 transition-shadow">
-              <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition"></div>
-              <div class="relative flex items-center justify-center h-96 md:h-[680px]">
-                <svg class="w-24 h-24 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.62V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.41a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.38 8.38 0 0 0 4.77 1.52v-3.4a4.86 4.86 0 0 1-1-.1z"/>
-                </svg>
-              </div>
-              <div class="p-6 text-center">
-                <p class="text-white font-bold text-xl">TikTok Video</p>
-                <p class="text-gray-300 text-sm mt-1">Tap to watch</p>
-              </div>
-            </div>
-          </a>
-        </div>
-        <p class="text-center -mt-6">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-            View on TikTok →
-          </a>
-        </p>
-      `);
-      return;
-    }
+    // ───── TikTok – Temporarily disabled (waiting for reliable free embed in 2026) ─────
+    // if (url.includes('tiktok.com')) {
+    //   const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+    //   const videoId = cleanUrl.match(/\/video\/(\d+)/)?.[1] || '';
+    //
+    //   useEffect(() => {
+    //     if (!videoId || !ref.current) return;
+    //
+    //     const blockquote = document.createElement('blockquote');
+    //     blockquote.className = 'tiktok-embed';
+    //     blockquote.setAttribute('cite', cleanUrl);
+    //     blockquote.setAttribute('data-video-id', videoId);
+    //     blockquote.style.maxWidth = '605px';
+    //     blockquote.style.width = '100%';
+    //     blockquote.innerHTML = '<section></section>';
+    //
+    //     ref.current.innerHTML = '';
+    //     ref.current.appendChild(blockquote);
+    //
+    //     if (!window.tiktokScriptLoaded) {
+    //       const script = document.createElement('script');
+    //       script.src = 'https://www.tiktok.com/embed.js';
+    //       script.async = true;
+    //       script.onload = () => { window.tiktokScriptLoaded = true; };
+    //       document.body.appendChild(script);
+    //     }
+    //   }, [cleanUrl, videoId]);
+    //
+    //   return <div ref={ref} className="my-12 flex justify-center" />;
+    // }
 
     // Fallback
     ref.current.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`;
