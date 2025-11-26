@@ -22,6 +22,7 @@ export function Layout({ children }: LayoutProps) {
     return stored === 'true';
   });
   const [sidebarHovered, setSidebarHovered] = useState(false);
+
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -57,7 +58,8 @@ export function Layout({ children }: LayoutProps) {
         onHoverChange={setSidebarHovered}
       />
 
-      <div className="sticky top-0 z-50 w-full">
+      {/* HOT NOW TICKER — clean, no extra border */}
+      <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur">
         <HotNowTicker />
       </div>
 
@@ -213,7 +215,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="max-w-7xl mx-auto px-4 pb-12">
             <div className="text-center">
               <p className="text-muted-foreground mb-2">
-                <span className="font-bold">Overly<span className="text-red-600">Concerned</span></span> &mdash; A space for the passionately opinionated
+                <span className="font-bold">Overly<span className="text-red-600">Concerned</span></span> — A space for the passionately opinionated
               </p>
               <p className="text-sm text-muted-foreground">
                 Debate. Discuss. Overthink. Because everyone's an expert online.
