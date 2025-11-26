@@ -79,7 +79,7 @@ export function Layout({ children }: LayoutProps) {
                   </span>
                 </Link>
 
-                <div className="hidden md:flex items-center gap-1">
+{/*            <div className="hidden md:flex items-center gap-1">
                   {navigation.map((item) => {
                     const Icon = item.icon;
                     return (
@@ -97,7 +97,7 @@ export function Layout({ children }: LayoutProps) {
                       </Link>
                     );
                   })}
-                </div>
+                </div> */}
 
                 <div className="flex items-center gap-2">
                   <button
