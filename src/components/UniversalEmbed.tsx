@@ -89,6 +89,8 @@ export default function UniversalEmbed({ url }: { url: string }) {
       ref.current.innerHTML = '';
       ref.current.appendChild(blockquote);
 
+      (window as any).TikTok?.embed?.refresh?.();
+
       if (!window.tiktokScriptLoaded) {
         const script = document.createElement('script');
         script.src = 'https://www.tiktok.com/embed.js';
