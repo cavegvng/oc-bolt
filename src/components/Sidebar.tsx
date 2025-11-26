@@ -76,7 +76,7 @@ export function Sidebar({ isOpen, onClose, isPinned, onPinToggle, onHoverChange 
               className="flex items-center justify-center w-full transition-all duration-300"
             >
               <div className="text-4xl font-black text-red-600 tracking-tight">
-                <span style="color: #ffffff">O</span>C
+                OC
               </div>
             </Link>
 
