@@ -75,44 +75,34 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Syntax-clean, working embed ─────
+    // ───── TikTok – The only version that works in React/Vite (dynamic script) ─────
     if (url.includes('tiktok.com')) {
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+      const videoId = cleanUrl.match(/\/video\/(\d+)/)?.[1] || '';
 
-      // Extract video ID
-      const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : '';
+      useEffect(() => {
+        if (!videoId || !ref.current) return;
 
-      if (videoId) {
-        setEmbedHtml(`
-          <div class="my-12 flex justify-center">
-            <blockquote 
-              class="tiktok-embed" 
-              cite="${cleanUrl}" 
-              data-video-id="${videoId}" 
-              style="max-width: 605px; width: 100%;">
-              <section>
-                <a target="_blank" rel="noopener noreferrer" href="${cleanUrl}">View on TikTok</a>
-              </section>
-            </blockquote>
-            <script async src="https://www.tiktok.com/embed.js"></script>
-          </div>
-          <p class="text-center -mt-6">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-              View on TikTok ↗
-            </a>
-          </p>
-        `);
-      } else {
-        setEmbedHtml(`
-          <p class="text-center my-12 text-gray-400">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
-              View on TikTok
-            </a>
-          </p>
-        `);
-      }
-      return;
+        const container = document.createElement('div');
+        container.innerHTML = `
+          <blockquote class="tiktok-embed" cite="${cleanUrl}" data-video-id="${videoId}" style="max-width:605px;width:100%;">
+            <section></section>
+          </blockquote>
+        `;
+
+        ref.current.innerHTML = '';
+        ref.current.appendChild(container.firstChild!);
+
+        if (!window.tiktokScriptLoaded) {
+          const script = document.createElement('script');
+          script.src = 'https://www.tiktok.com/embed.js';
+          script.async = true;
+          script.onload = () => { window.tiktokScriptLoaded = true; };
+          document.head.appendChild(script);
+        }
+      }, [cleanUrl, videoId]);
+
+      return <div ref={ref} className="my-12 flex justify-center" />;
     }
 
     // ───── YouTube (Regular + Shorts) ─────
