@@ -76,36 +76,41 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Temporarily disabled (waiting for reliable free embed in 2026) ─────
-    // if (url.includes('tiktok.com')) {
-    //   const cleanUrl = url.split('?')[0].replace(/\/$/, '');
-    //   const videoId = cleanUrl.match(/\/video\/(\d+)/)?.[1] || '';
-    //
-    //   useEffect(() => {
-    //     if (!videoId || !ref.current) return;
-    //
-    //     const blockquote = document.createElement('blockquote');
-    //     blockquote.className = 'tiktok-embed';
-    //     blockquote.setAttribute('cite', cleanUrl);
-    //     blockquote.setAttribute('data-video-id', videoId);
-    //     blockquote.style.maxWidth = '605px';
-    //     blockquote.style.width = '100%';
-    //     blockquote.innerHTML = '<section></section>';
-    //
-    //     ref.current.innerHTML = '';
-    //     ref.current.appendChild(blockquote);
-    //
-    //     if (!window.tiktokScriptLoaded) {
-    //       const script = document.createElement('script');
-    //       script.src = 'https://www.tiktok.com/embed.js';
-    //       script.async = true;
-    //       script.onload = () => { window.tiktokScriptLoaded = true; };
-    //       document.body.appendChild(script);
-    //     }
-    //   }, [cleanUrl, videoId]);
-    //
-    //   return <div ref={ref} className="my-12 flex justify-center" />;
-    // }
+    // ───── TikTok – Pro thumbnail preview (100% reliable, no script, no blank) ─────
+    if (url.includes('tiktok.com')) {
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+
+      setEmbedHtml(`
+        <div class="my-12 flex justify-center">
+          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="block w-full max-w-lg group">
+            <div class="relative bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-xl overflow-hidden shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-[1.02]">
+              <!-- Dark overlay + play icon -->
+              <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-20 h-20 text-white opacity-90" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+              <!-- TikTok logo in corner -->
+              <div class="absolute top-4 left-4 bg-black/70 px-3 py-1 rounded-full">
+                <span class="text-white text-xs font-bold">TikTok</span>
+              </div>
+              <!-- Bottom bar -->
+              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-center">
+                <p class="text-white font-semibold text-lg">TikTok Video</p>
+                <p class="text-gray-300 text-sm">Tap to watch</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        <p class="text-center -mt-6">
+          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm hover:text-purple-300">
+            View on TikTok →
+          </a>
+        </p>
+      `);
+      return;
+    }
 
     // Fallback
     ref.current.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${url}</a>`;
