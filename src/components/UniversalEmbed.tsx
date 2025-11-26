@@ -99,7 +99,7 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-// ───── TikTok – Static preview (no script, no blank, clickable) ─────
+    // ───── TikTok – Static preview (no script, no blank, clickable) ─────
     if (url.includes('tiktok.com')) {
       // Clean URL — remove query params
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
