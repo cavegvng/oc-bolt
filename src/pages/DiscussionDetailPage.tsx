@@ -479,6 +479,7 @@ export function DiscussionDetailPage() {
         <div className="space-y-8">
           {discussion.twitter_url && <UniversalEmbed url={discussion.twitter_url} />}
           {discussion.instagram_url && <UniversalEmbed url={discussion.instagram_url} />}
+          {discussion.tiktok_url && <UniversalEmbed url={discussion.tiktok_url} />}
           {discussion.youtube_url && <UniversalEmbed url={discussion.youtube_url} />}
         </div>
 
