@@ -99,41 +99,56 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Pure iframe (no script, no blank, full video) ─────
+    // ───── TikTok – Dynamic script load (Bolt.new v2 compatible) ─────
     if (url.includes('tiktok.com')) {
-      // Clean URL — remove query params
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Extract video ID from /video/ID
+      // Extract video ID
       const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
       const videoId = videoIdMatch ? videoIdMatch[1] : '';
 
       if (videoId) {
-        setEmbedHtml(`
-          <div class="my-12 flex justify-center">
-            <iframe
-              src="https://www.tiktok.com/embed/${videoId}"
-              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
-              scrolling="no"
-              allowFullScreen
-              allow="encrypted-media; fullscreen; picture-in-picture">
-            </iframe>
-          </div>
-          <p class="text-center -mt-6">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-              View on TikTok ↗
-            </a>
-          </p>
-        `);
+        // Create blockquote
+        const blockquote = document.createElement('blockquote');
+        blockquote.className = 'tiktok-embed';
+        blockquote.setAttribute('cite', cleanUrl);
+        blockquote.setAttribute('data-video-id', videoId);
+        blockquote.style.maxWidth = '540px';
+        blockquote.style.width = '100%';
+        blockquote.innerHTML = `<section><a target="_blank" rel="noopener noreferrer" href="${cleanUrl}">View on TikTok</a></section>`;
+
+        ref.current.innerHTML = '';
+        ref.current.appendChild(blockquote);
+
+        // Load TikTok script dynamically (once per page)
+        if (!document.getElementById('tiktok-embed-script')) {
+          const script = document.createElement('script');
+          script.id = 'tiktok-embed-script';
+          script.src = 'https://www.tiktok.com/embed.js';
+          script.async = true;
+          script.onload = () => {
+            // Force load the embed
+            if (window.TiktokEmbed) {
+              window.TiktokEmbed.load(ref.current);
+            }
+          };
+          document.head.appendChild(script);  // Append to head (Vercel allows)
+        } else {
+          // Script loaded — force reload
+          setTimeout(() => {
+            if (window.TiktokEmbed) {
+              window.TiktokEmbed.load(ref.current);
+            }
+          }, 500);
+        }
+
+        // Fallback link
+        const fallback = document.createElement('p');
+        fallback.className = 'text-center -mt-6';
+        fallback.innerHTML = `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">View on TikTok ↗</a>`;
+        ref.current.appendChild(fallback);
       } else {
-        // Fallback for invalid URLs
-        setEmbedHtml(`
-          <p class="text-center my-12 text-gray-400">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
-              View on TikTok
-            </a>
-          </p>
-        `);
+        ref.current.innerHTML = `<p class="text-center my-12 text-gray-400"><a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">View on TikTok</a></p>`;
       }
       return;
     }
