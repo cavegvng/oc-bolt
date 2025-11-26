@@ -75,38 +75,35 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – 100% WORKING FINAL (Hooks fixed, no crash, full embed) ─────
-    if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
-      const videoId = cleanUrl.match(/\/video\/(\d+)/)?.[1] || '';
+    // ───── TikTok – FINAL WORKING (Hooks at top level, no React error) ─────
+    const isTikTok = url.includes('tiktok.com');
+    const cleanTikTokUrl = isTikTok ? url.split('?')[0].replace(/\/$/, '') : '';
+    const tikTokVideoId = isTikTok ? cleanTikTokUrl.match(/\/video\/(\d+)/)?.[1] || '' : '';
 
-      useEffect(() => {
-        if (!videoId || !ref.current) return;
+    useEffect(() => {
+      if (!isTikTok || !tikTokVideoId || !ref.current) return;
 
-        // Create blockquote
-        const blockquote = document.createElement('blockquote');
-        blockquote.className = 'tiktok-embed';
-        blockquote.setAttribute('cite', cleanUrl);
-        blockquote.setAttribute('data-video-id', videoId);
-        blockquote.style.maxWidth = '605px';
-        blockquote.style.width = '100%';
-        blockquote.innerHTML = '<section></section>';
+      const blockquote = document.createElement('blockquote');
+      blockquote.className = 'tiktok-embed';
+      blockquote.setAttribute('cite', cleanTikTokUrl);
+      blockquote.setAttribute('data-video-id', tikTokVideoId);
+      blockquote.style.maxWidth = '605px';
+      blockquote.style.width = '100%';
+      blockquote.innerHTML = '<section></section>';
 
-        ref.current.innerHTML = '';
-        ref.current.appendChild(blockquote);
+      ref.current.innerHTML = '';
+      ref.current.appendChild(blockquote);
 
-        // Load TikTok script once (global guard)
-        if (!window.tiktokScriptLoaded) {
-          const script = document.createElement('script');
-          script.src = 'https://www.tiktok.com/embed.js';
-          script.async = true;
-          script.onload = () => {
-            window.tiktokScriptLoaded = true;
-          };
-          document.head.appendChild(script);
-        }
-      }, [cleanUrl, videoId]);
+      if (!window.tiktokScriptLoaded) {
+        const script = document.createElement('script');
+        script.src = 'https://www.tiktok.com/embed.js';
+        script.async = true;
+        script.onload = () => { window.tiktokScriptLoaded = true; };
+        document.head.appendChild(script);
+      }
+    }, [isTikTok, cleanTikTokUrl, tikTokVideoId]);
 
+    if (isTikTok) {
       return <div ref={ref} className="my-12 flex justify-center" />;
     }
 
