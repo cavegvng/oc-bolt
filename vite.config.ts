@@ -28,3 +28,12 @@ export default defineConfig({
     }
   }
 });
+
+export default defineConfig({
+  // ... your existing config
+  server: {
+    headers: {
+      'Content-Security-Policy': "frame-src 'self' https://*.tiktok.com; img-src 'self' https: data:;"
+    }
+  }
+});
