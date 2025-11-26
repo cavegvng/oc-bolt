@@ -99,49 +99,49 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – Static preview (no script, no blank, clickable) ─────
+    // ───── TikTok – oEmbed API (official, no blank, full metadata) ─────
     if (url.includes('tiktok.com')) {
-      // Clean URL — remove query params
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+      const cleanUrl = url.split('?')[0]; // Remove query params like ?is_from_webapp=1
 
-      // Extract video ID
-      const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : '';
-
-      if (videoId) {
-        setEmbedHtml(`
-          <div class="my-12 flex justify-center">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="block w-full max-w-lg">
-              <div class="relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-shadow">
-                <div class="relative w-full h-96 md:h-[680px] bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                  <img src="https://img.tttiks.com/thumb/${videoId}" alt="TikTok Preview" class="absolute inset-0 w-full h-full object-cover opacity-50" />
-                  <div class="relative z-10 text-center">
-                    <svg class="w-16 h-16 text-white mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <p class="text-white font-semibold text-lg">TikTok Video</p>
-                    <p class="text-gray-300 text-sm mt-1">Tap to play on TikTok</p>
-                  </div>
-                </div>
-              </div>
-            </a>
+      // Show loading immediately
+      ref.current.innerHTML = `
+        <div class="my-12 flex justify-center items-center h-96 bg-gray-900 rounded-lg shadow-2xl">
+          <div class="text-center">
+            <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+            <p class="text-gray-400">Loading TikTok...</p>
           </div>
-          <p class="text-center -mt-6">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
-              View on TikTok ↗
-            </a>
-          </p>
-        `);
-      } else {
-        // Fallback link
-        setEmbedHtml(`
-          <p class="text-center my-12 text-gray-400">
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
-              View on TikTok
-            </a>
-          </p>
-        `);
-      }
+        </div>
+      `;
+
+      // Fetch official embed HTML from TikTok oEmbed API
+      fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.html) {
+            ref.current.innerHTML = data.html; // Official blockquote + script bundled
+          } else {
+            // Fallback if no HTML (rare)
+            ref.current.innerHTML = `
+              <div class="my-12 text-center">
+                <p class="text-gray-400">TikTok embed unavailable</p>
+                <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline block mt-2">
+                  View on TikTok →
+                </a>
+              </p>
+            `;
+          }
+        })
+        .catch(() => {
+          // Network fallback
+          ref.current.innerHTML = `
+            <div class="my-12 text-center">
+              <p class="text-gray-400">TikTok embed unavailable</p>
+              <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline block mt-2">
+                View on TikTok →
+              </a>
+            </div>
+          `;
+        });
       return;
     }
     
