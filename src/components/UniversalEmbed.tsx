@@ -75,18 +75,24 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
     
-    // ───── YouTube ─────
+    // ───── YouTube (Regular + Shorts) – 100% working ─────
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      // Updated regex: now catches /shorts/VIDEO_ID too
+      const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      
       if (videoId) {
         setEmbedHtml(`
-          <div class="my-8 aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/${videoId}?rel=0" 
-              class="w-full h-96 rounded-lg border-0"
-              allowFullScreen 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-            </iframe>
+          <div class="my-8 flex justify-center">
+            <div class="w-full max-w-2xl">
+              <div class="aspect-w-16 aspect-h-9">
+                <iframe
+                  src="https://www.youtube.com/embed/${videoId}?rel=0"
+                  class="w-full h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+              </div>
+            </div>
           </div>
         `);
       }
