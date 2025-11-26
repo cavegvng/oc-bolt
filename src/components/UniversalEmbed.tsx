@@ -99,36 +99,43 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-// ───── TikTok – FINAL 100% WORKING (all formats, no blank) ─────
+    // ───── TikTok – Direct iframe (no script, 100% reliable, no blank) ─────
     if (url.includes('tiktok.com')) {
-      // Clean URL — remove query params and trailing slash
+      // Clean URL — remove query params
       let cleanUrl = url.split('?')[0].replace(/\/$/, '');
 
-      // Extract the video ID (the number after /video/)
+      // Extract video ID from /video/ID
       const videoIdMatch = cleanUrl.match(/\/video\/(\d+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : cleanUrl.split('/').pop() || '';
+      const videoId = videoIdMatch ? videoIdMatch[1] : '';
 
-      setEmbedHtml(`
-        <div class="my-12 flex justify-center">
-          <div class="w-full max-w-lg">
-            <blockquote 
-              class="tiktok-embed" 
-              cite="${cleanUrl}" 
-              data-video-id="${videoId}" 
-              style="max-width: 605px; width: 100%;">
-              <section></section>
-            </blockquote>
-            <script async src="https://www.tiktok.com/embed.js"></script>
+      if (videoId) {
+        // Direct iframe from TikTok's official embed endpoint
+        setEmbedHtml(`
+          <div class="my-12 flex justify-center">
+            <iframe
+              src="https://www.tiktok.com/embed/v2/${videoId}"
+              class="w-full max-w-lg h-96 md:h-[680px] rounded-lg border-0 shadow-2xl"
+              scrolling="no"
+              allowFullScreen
+              allow="encrypted-media; fullscreen; picture-in-picture">
+            </iframe>
           </div>
-        </div>
-
-        <!-- Clean fallback link -->
-        <p class="text-center -mt-6">
-          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm hover:text-purple-300">
-            View on TikTok
-          </a>
-        </p>
-      `);
+          <p class="text-center -mt-6">
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline text-sm">
+              View on TikTok ↗
+            </a>
+          </p>
+        `);
+      } else {
+        // Fallback if no ID (rare)
+        setEmbedHtml(`
+          <p class="text-center my-12 text-gray-400">
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-purple-400 underline">
+              View on TikTok
+            </a>
+          </p>
+        `);
+      }
       return;
     }
     
