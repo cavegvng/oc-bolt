@@ -76,48 +76,27 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // ───── TikTok – OFFICIAL oEmbed API (no script, no CSP hell, 100% works) ─────
-    if (url.includes('tiktok.com')) {
-      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+    // TikTok — dynamic script, hooks at top level
+    if (isTikTok && tikTokVideoId) {
+      const blockquote = document.createElement('blockquote');
+      blockquote.className = 'tiktok-embed';
+      blockquote.setAttribute('cite', cleanTikTokUrl);
+      blockquote.setAttribute('data-video-id', tikTokVideoId);
+      blockquote.style.maxWidth = '605px';
+      blockquote.style.width = '100%';
+      blockquote.innerHTML = '<section></section>';
 
-      useEffect(() => {
-        if (!ref.current) return;
+      ref.current.innerHTML = '';
+      ref.current.appendChild(blockquote);
 
-        // Show loading
-        ref.current.innerHTML = `
-          <div class="my-12 flex justify-center items-center h-96 bg-gray-900 rounded-lg">
-            <div class="text-center">
-              <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p class="text-gray-400">Loading TikTok...</p>
-            </div>
-          </div>
-        `;
-
-        // Official TikTok oEmbed endpoint (no key needed)
-        fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(cleanUrl)}`)
-          .then(r => r.json())
-          .then(data => {
-            if (data?.html && ref.current) {
-              ref.current.innerHTML = data.html;  // Full embed with player, sound, likes
-            } else {
-              throw new Error('No HTML');
-            }
-          })
-          .catch(() => {
-            if (ref.current) {
-              ref.current.innerHTML = `
-                <div class="my-12 text-center">
-                  <p class="text-gray-400 mb-4">TikTok embed unavailable</p>
-                  <a href="${cleanUrl}" target="_blank" class="text-purple-400 underline">
-                    View on TikTok →
-                  </a>
-                </div>
-              `;
-            }
-          });
-      }, [cleanUrl]);
-
-      return <div ref={ref} />;
+      if (!window.tiktokScriptLoaded) {
+        const script = document.createElement('script');
+        script.src = 'https://www.tiktok.com/embed.js';
+        script.async = true;
+        script.onload = () => { window.tiktokScriptLoaded = true; };
+        document.head.appendChild(script);
+      }
+      return;
     }
 
     // Fallback
