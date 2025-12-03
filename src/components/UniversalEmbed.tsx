@@ -38,10 +38,44 @@ export default function UniversalEmbed({ url }: { url: string }) {
       return;
     }
 
-    // Instagram
+    // Instagram Reels - Special Card Treatment
+    if (isInstagram && url.includes('/reel/')) {
+      ref.current.innerHTML = `
+        <div class="my-12 flex justify-center">
+          <a href="${url}" target="_blank" rel="noopener noreferrer"
+             class="block w-full max-w-lg bg-card border border-border rounded-3xl overflow-hidden shadow-2xl transition-all hover:scale-[1.02] hover:shadow-xl group">
+            <div class="relative p-8 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-red-500/10">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold text-foreground">Instagram Reel</h3>
+                  <p class="text-sm text-muted-foreground">Tap to watch on Instagram</p>
+                </div>
+              </div>
+              <div class="text-center">
+                <span class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-red-600 text-white font-semibold rounded-full shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                  Watch Reel
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    // Instagram Posts - Regular Iframe Embed (no changes)
     if (isInstagram) {
       let embedUrl = url.split('?')[0].replace(/\/$/, '');
-      embedUrl = embedUrl.replace('/reel/', '/p/');
       if (!embedUrl.endsWith('/embed')) embedUrl += '/embed/';
 
       ref.current.innerHTML = `
