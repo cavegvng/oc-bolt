@@ -135,7 +135,7 @@ export function Layout({ children }: LayoutProps) {
                         {userMenuOpen && (
                           <div className="absolute right-0 mt-2 w-48 bg-card rounded-3xl shadow-lg border border-border py-2 z-50">
                             <Link
-                              to="/profile"
+                              to={`/profile/${user.id}`}
                               onClick={() => setUserMenuOpen(false)}
                               className="flex items-center gap-2 px-4 py-2 text-foreground hover:bg-accent transition-colors"
                             >

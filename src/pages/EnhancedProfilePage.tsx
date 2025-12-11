@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import {
@@ -42,6 +42,7 @@ const socialIcons = {
 
 export function EnhancedProfilePage() {
   const { user } = useAuth();
+  const { userId } = useParams<{ userId: string }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [extendedProfile, setExtendedProfile] = useState<ExtendedProfile | null>(null);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
@@ -62,36 +63,36 @@ export function EnhancedProfilePage() {
   });
 
   useEffect(() => {
-    if (user) {
+    if (userId) {
       loadProfile();
     }
-  }, [user]);
+  }, [userId]);
 
   const loadProfile = async () => {
-    if (!user) return;
+    if (!userId) return;
 
     setLoading(true);
     try {
       const [profileRes, extProfileRes, discussionsRes, debatesRes, socialRes, achievementsRes, visitorsRes] =
         await Promise.all([
-          supabase.from('users').select('*').eq('id', user.id).single(),
-          supabase.from('user_profiles').select('*').eq('user_id', user.id).maybeSingle(),
+          supabase.from('users').select('*').eq('id', userId).single(),
+          supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle(),
           supabase
             .from('discussions')
             .select('*')
-            .eq('author_id', user.id)
+            .eq('author_id', userId)
             .eq('moderation_status', 'approved')
             .order('created_at', { ascending: false })
             .limit(5),
-          supabase.from('debates').select('*').eq('author_id', user.id).order('created_at', { ascending: false }).limit(5),
-          supabase.from('social_links').select('*').eq('user_id', user.id),
+          supabase.from('debates').select('*').eq('author_id', userId).order('created_at', { ascending: false }).limit(5),
+          supabase.from('social_links').select('*').eq('user_id', userId),
           supabase
             .from('user_achievements')
             .select('*, achievements_definitions(*)')
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .not('earned_at', 'is', null)
             .order('earned_at', { ascending: false }),
-          supabase.from('profile_visitors').select('id', { count: 'exact', head: true }).eq('profile_id', user.id),
+          supabase.from('profile_visitors').select('id', { count: 'exact', head: true }).eq('profile_id', userId),
         ]);
 
       if (profileRes.data) {
@@ -210,7 +211,7 @@ export function EnhancedProfilePage() {
               </div>
             </div>
 
-            {!editing && (
+            {!editing && user && userId === user.id && (
               <button
                 onClick={() => setEditing(true)}
                 className="mb-4 flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-2xl transition-colors"
@@ -476,7 +477,7 @@ export function EnhancedProfilePage() {
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-6">
-        <ProfileComments profileId={user!.id} />
+        <ProfileComments profileId={userId!} />
       </div>
     </div>
   );

@@ -59,14 +59,6 @@ function App() {
               />
               <Route path="/debates/:id" element={<DebateDetailPage />} />
               <Route path="/hot-topics" element={<HotTopicsPage />} />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <EnhancedProfilePage />
-                  </ProtectedRoute>
-                }
-              />
               <Route path="/profile/:userId" element={<EnhancedProfilePage />} />
               <Route
                 path="/admin"
