@@ -12,7 +12,7 @@ type Debate = Database['public']['Tables']['debates']['Row'];
 export function EditDebatePage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user, role } = useAuth();
+  const { user, userRole } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [debate, setDebate] = useState<Debate | null>(null);
   const [lastEditor, setLastEditor] = useState<{ username: string } | null>(null);
@@ -33,7 +33,7 @@ export function EditDebatePage() {
   const [error, setError] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const isSuperModOrAbove = role && ['owner', 'admin', 'super_moderator'].includes(role);
+  const isSuperModOrAbove = userRole && ['owner', 'admin', 'super_moderator'].includes(userRole);
 
   useEffect(() => {
     if (!user || !id) {
@@ -148,7 +148,7 @@ export function EditDebatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!user || !id || !role) {
+    if (!user || !id || !userRole) {
       setError('You must be signed in to edit a debate');
       return;
     }
@@ -187,7 +187,7 @@ export function EditDebatePage() {
       await updateDebate({
         debateId: id,
         userId: user.id,
-        userRole: role,
+        userRole: userRole,
         updates,
       });
 
