@@ -10,6 +10,7 @@ import { EditDiscussionPage } from './pages/EditDiscussionPage';
 import { DebatesPage } from './pages/DebatesPage';
 import { DebateDetailPage } from './pages/DebateDetailPage';
 import { NewDebatePage } from './pages/NewDebatePage';
+import { EditDebatePage } from './pages/EditDebatePage';
 import { HotTopicsPage } from './pages/HotTopicsPage';
 import { EnhancedProfilePage } from './pages/EnhancedProfilePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -58,6 +59,14 @@ function App() {
                 }
               />
               <Route path="/debates/:id" element={<DebateDetailPage />} />
+              <Route
+                path="/debates/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditDebatePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/hot-topics" element={<HotTopicsPage />} />
               <Route path="/profile/:userId" element={<EnhancedProfilePage />} />
               <Route

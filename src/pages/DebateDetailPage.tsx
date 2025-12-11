@@ -7,7 +7,8 @@ import { usePermissions } from '../hooks/use-permissions';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
 import { UserLink } from '../components/UserLink';
 import { deleteDebate } from '../services/delete-service';
-import { Scale, ThumbsUp, ThumbsDown, Minus, ArrowLeft, Lock, User as UserIcon, AlertCircle, Info, Trash2 } from 'lucide-react';
+import { checkDebateStatus } from '../services/debate-service';
+import { Scale, ThumbsUp, ThumbsDown, Minus, ArrowLeft, Lock, User as UserIcon, AlertCircle, Info, Trash2, Edit2, Clock, CheckCircle } from 'lucide-react';
 
 type Debate = Database['public']['Tables']['debates']['Row'] & {
   users: {
@@ -44,9 +45,12 @@ export function DebateDetailPage() {
   const [voteTrends, setVoteTrends] = useState<VoteTrend[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isConcluded, setIsConcluded] = useState(false);
   const canModerate = hasRole('moderator');
+  const isSuperModOrAbove = hasRole('super_moderator');
   const isAuthor = user && debate && user.id === debate.author_id;
   const canDelete = isAuthor || canModerate;
+  const canEdit = isAuthor || isSuperModOrAbove;
 
   useEffect(() => {
     if (id) {
@@ -74,6 +78,13 @@ export function DebateDetailPage() {
 
     if (data) {
       setDebate(data);
+
+      const status = await checkDebateStatus(id);
+      setIsConcluded(status.isConcluded);
+
+      if (status.shouldLock) {
+        await fetchDebate();
+      }
     }
     setLoading(false);
   }
@@ -249,6 +260,23 @@ export function DebateDetailPage() {
     }
   }
 
+  function getTimeRemaining() {
+    if (!debate?.end_date) return null;
+
+    const endDate = new Date(debate.end_date);
+    const now = new Date();
+    const diff = endDate.getTime() - now.getTime();
+
+    if (diff <= 0) return { text: 'Concluded', isExpired: true };
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    if (days > 0) return { text: `${days} day${days > 1 ? 's' : ''} remaining`, isExpired: false };
+    if (hours > 0) return { text: `${hours} hour${hours > 1 ? 's' : ''} remaining`, isExpired: false };
+    return { text: 'Less than 1 hour remaining', isExpired: false };
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -283,6 +311,7 @@ export function DebateDetailPage() {
 
   const isVoteLocked = userStance && userStance.vote_change_count >= 1;
   const canChangeVote = userStance && userStance.vote_change_count === 0;
+  const timeRemaining = getTimeRemaining();
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -314,6 +343,18 @@ export function DebateDetailPage() {
                   Locked
                 </span>
               )}
+              {timeRemaining && timeRemaining.isExpired && (
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Concluded
+                </span>
+              )}
+              {timeRemaining && !timeRemaining.isExpired && (
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {timeRemaining.text}
+                </span>
+              )}
             </div>
 
             <h1 className="text-3xl font-bold text-foreground mb-3">
@@ -331,16 +372,28 @@ export function DebateDetailPage() {
             </p>
             </div>
           </div>
-          {canDelete && (
-            <button
-              onClick={() => setDeleteModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors"
-              title="Delete Debate"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <button
+                onClick={() => navigate(`/debates/${id}/edit`)}
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors"
+                title="Edit Debate"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Edit</span>
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => setDeleteModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors"
+                title="Delete Debate"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {voteTrends.length > 0 && (

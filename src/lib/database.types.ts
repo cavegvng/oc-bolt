@@ -393,6 +393,10 @@ export interface Database {
           report_count: number
           last_moderation_action: string | null
           moderated_by: string | null
+          end_date: string | null
+          duration_days: number | null
+          last_edited_by: string | null
+          last_edited_at: string | null
           created_at: string
           updated_at: string
         }
@@ -409,6 +413,10 @@ export interface Database {
           report_count?: number
           last_moderation_action?: string | null
           moderated_by?: string | null
+          end_date?: string | null
+          duration_days?: number | null
+          last_edited_by?: string | null
+          last_edited_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -425,6 +433,10 @@ export interface Database {
           report_count?: number
           last_moderation_action?: string | null
           moderated_by?: string | null
+          end_date?: string | null
+          duration_days?: number | null
+          last_edited_by?: string | null
+          last_edited_at?: string | null
           created_at?: string
           updated_at?: string
         }
