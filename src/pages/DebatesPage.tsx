@@ -6,6 +6,7 @@ import { Scale, ThumbsUp, ThumbsDown, Minus, Clock, Eye, Filter, Trash2, CheckSq
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/use-permissions';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { UserLink } from '../components/UserLink';
 import { bulkDeleteDebates } from '../services/delete-service';
 
 type Debate = Database['public']['Tables']['debates']['Row'] & {
@@ -301,7 +302,7 @@ export function DebatesPage() {
                         <div className="bg-red-400" style={{ width: `${conPercent}%` }}></div>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-white/80">
-                        <span className="font-medium">Started by {featuredDebate.users?.username || 'Anonymous'}</span>
+                        <span className="font-medium">Started by <UserLink userId={featuredDebate.author_id} username={featuredDebate.users?.username || 'Anonymous'} inline className="text-white/90" /></span>
                         <span>•</span>
                         <span>{totalVotes} total votes</span>
                       </div>
@@ -396,7 +397,7 @@ export function DebatesPage() {
                   <div className="pt-4 border-t border-border">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {debate.users?.username || 'Anonymous'}
+                        <UserLink userId={debate.author_id} username={debate.users?.username || 'Anonymous'} inline />
                       </span>
                       <div className="flex items-center gap-1">
                         <Scale className="w-3.5 h-3.5" />

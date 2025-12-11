@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { TrendingUp, MessageSquare, Users, Flame, ArrowRight, Vote, Scale, Palette, Leaf, LucideIcon } from 'lucide-react';
 import { DiscussionCard } from '../components/DiscussionCard';
+import { UserLink } from '../components/UserLink';
 import { getHomepageSections } from '../services/homepage-controls-service';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'] & {
@@ -266,7 +267,7 @@ export function HomePage() {
                   {discussion.description}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  by {discussion.users?.username || 'Anonymous'}
+                  by <UserLink userId={discussion.author_id} username={discussion.users?.username || 'Anonymous'} inline />
                 </p>
               </Link>
             ))}

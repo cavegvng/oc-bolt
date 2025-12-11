@@ -20,6 +20,7 @@ import {
 import { ModerationModal } from '../components/ModerationModal';
 import { ReportModal } from '../components/ReportModal';
 import { MarkdownRenderer } from '../components/MarkdownRenderer';
+import { UserLink } from '../components/UserLink';
 import UniversalEmbed from '../components/UniversalEmbed';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
 import { deleteDiscussion } from '../services/delete-service';
@@ -461,9 +462,7 @@ export function DiscussionDetailPage() {
         </h1>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-          <span className="font-medium text-foreground">
-            {discussion.users?.username || 'Anonymous'}
-          </span>
+          <UserLink userId={discussion.author_id} username={discussion.users?.username || 'Anonymous'} inline className="font-medium" />
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             {formatTimeAgo(discussion.created_at)}
@@ -547,9 +546,7 @@ export function DiscussionDetailPage() {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="font-medium text-foreground">
-                        {comment.users?.username || 'Anonymous'}
-                      </span>
+                      <UserLink userId={comment.user_id} username={comment.users?.username || 'Anonymous'} inline className="font-medium" />
                       <span className="text-sm text-muted-foreground">
                         {formatTimeAgo(comment.created_at)}
                       </span>

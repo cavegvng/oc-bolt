@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
 import { MessageSquare, Heart, User as UserIcon } from 'lucide-react';
+import { UserLink } from './UserLink';
 
 type ProfileComment = Database['public']['Tables']['profile_comments']['Row'] & {
   users: {
@@ -116,7 +117,7 @@ export function ProfileComments({ profileId }: ProfileCommentsProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground">
-                    {comment.users?.username || 'Anonymous'}
+                    <UserLink userId={comment.author_id} username={comment.users?.username || 'Anonymous'} inline />
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(comment.created_at).toLocaleDateString()}

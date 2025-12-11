@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/use-permissions';
 import { BulkCategoryModal } from '../components/BulkCategoryModal';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { UserLink } from '../components/UserLink';
 import { bulkDeleteDiscussions, bulkUpdateCategories } from '../services/delete-service';
 
 type Discussion = Database['public']['Tables']['discussions']['Row'] & {
@@ -413,9 +414,7 @@ export function DiscussionsPage() {
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     {discussion.last_activity_user && discussion.last_activity_user_id !== discussion.author_id ? (
                       <>
-                        <span className="font-medium text-foreground">
-                          {discussion.last_activity_user.username}
-                        </span>
+                        <UserLink userId={discussion.last_activity_user_id} username={discussion.last_activity_user.username} inline className="font-medium" />
                         <span>replied</span>
                         <div className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
@@ -424,9 +423,7 @@ export function DiscussionsPage() {
                       </>
                     ) : (
                       <>
-                        <span className="font-medium text-foreground">
-                          {discussion.users?.username || 'Anonymous'}
-                        </span>
+                        <UserLink userId={discussion.author_id} username={discussion.users?.username || 'Anonymous'} inline className="font-medium" />
                         <span>started</span>
                         <div className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />

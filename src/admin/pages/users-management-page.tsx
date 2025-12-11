@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Users, Search, Edit, Shield, Calendar, MessageSquare, FileText } from 'lucide-react';
 import { AdminLayout } from '../components/admin-layout';
 import { StatusBadge } from '../components/status-badge';
+import { UserLink } from '../../components/UserLink';
 import { getAllUsers, updateUserRole, type UserWithStats, type UserFilters } from '../../services/user-service';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePermissions } from '../../hooks/use-permissions';
@@ -185,7 +186,7 @@ export function UsersManagementPage() {
                         )}
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {userData.username}
+                            <UserLink userId={userData.id} username={userData.username} inline />
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             {userData.email}
@@ -307,7 +308,7 @@ export function UsersManagementPage() {
                   )}
                   <div>
                     <div className="font-medium text-gray-900 dark:text-white">
-                      {selectedUser.username}
+                      <UserLink userId={selectedUser.id} username={selectedUser.username} inline />
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       Current role: {getRoleLabel(selectedUser.role)}

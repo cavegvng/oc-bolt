@@ -5,6 +5,7 @@ import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/use-permissions';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
+import { UserLink } from '../components/UserLink';
 import { deleteDebate } from '../services/delete-service';
 import { Scale, ThumbsUp, ThumbsDown, Minus, ArrowLeft, Lock, User as UserIcon, AlertCircle, Info, Trash2 } from 'lucide-react';
 
@@ -326,7 +327,7 @@ export function DebateDetailPage() {
             )}
 
             <p className="text-sm text-muted-foreground">
-              Started by <span className="font-medium text-foreground">{debate.users?.username || 'Anonymous'}</span>
+              Started by <UserLink userId={debate.author_id} username={debate.users?.username || 'Anonymous'} inline className="font-medium" />
             </p>
             </div>
           </div>
@@ -561,7 +562,7 @@ export function DebateDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm">
-                      {stance.users?.username || 'Anonymous'}
+                      <UserLink userId={stance.user_id} username={stance.users?.username || 'Anonymous'} inline />
                     </p>
                   </div>
                   <div className="flex items-center gap-1 text-sm font-bold text-foreground">
@@ -608,7 +609,7 @@ export function DebateDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm">
-                      {stance.users?.username || 'Anonymous'}
+                      <UserLink userId={stance.user_id} username={stance.users?.username || 'Anonymous'} inline />
                     </p>
                   </div>
                   <div className="flex items-center gap-1 text-sm font-bold text-foreground">
@@ -655,7 +656,7 @@ export function DebateDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm">
-                      {stance.users?.username || 'Anonymous'}
+                      <UserLink userId={stance.user_id} username={stance.users?.username || 'Anonymous'} inline />
                     </p>
                   </div>
                   <div className="flex items-center gap-1 text-sm font-bold text-foreground">

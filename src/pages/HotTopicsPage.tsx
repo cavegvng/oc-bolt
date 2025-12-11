@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { Flame, TrendingUp, MessageSquare, Eye, Clock } from 'lucide-react';
+import { UserLink } from '../components/UserLink';
 
 type HotTopic = Database['public']['Tables']['hot_topics']['Row'] & {
   discussions: (Database['public']['Tables']['discussions']['Row'] & {
@@ -172,9 +173,7 @@ export function HotTopicsPage() {
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium text-foreground">
-                          {discussion.users?.username || 'Anonymous'}
-                        </span>
+                        <UserLink userId={discussion.author_id} username={discussion.users?.username || 'Anonymous'} inline className="font-medium" />
                       </div>
 
                       <div className="flex items-center gap-1">

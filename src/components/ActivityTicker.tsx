@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MessageSquare, ThumbsUp, FileText, Activity } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
+import { UserLink } from './UserLink';
 
 interface ActivityItem {
   id: string;
@@ -56,15 +57,27 @@ export function ActivityTicker() {
 
   const getActionText = (activity: ActivityItem) => {
     const username = activity.users?.username || 'Someone';
+    const userLink = (
+      <UserLink userId={activity.user_id} username={username} inline className="text-current hover:text-blue-600 dark:hover:text-blue-400" />
+    );
+
     switch (activity.action_type) {
       case 'created_discussion':
-        return `${username} started a discussion`;
+        return <>
+          {userLink} started a discussion
+        </>;
       case 'posted_comment':
-        return `${username} commented on ${activity.discussions?.title || 'a discussion'}`;
+        return <>
+          {userLink} commented on {activity.discussions?.title || 'a discussion'}
+        </>;
       case 'voted':
-        return `${username} voted`;
+        return <>
+          {userLink} voted
+        </>;
       default:
-        return `${username} took action`;
+        return <>
+          {userLink} took action
+        </>;
     }
   };
 

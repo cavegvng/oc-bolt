@@ -3,6 +3,7 @@ import { Eye, MessageSquare, Youtube, Twitter, Instagram } from 'lucide-react';
 import { Database } from '../lib/database.types';
 import { ActivityIndicator } from './ActivityIndicator';
 import { DiscussionBadges } from './DiscussionBadges';
+import { UserLink } from './UserLink';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -189,27 +190,14 @@ export function DiscussionCard({ discussion, size = 'small', className = '' }: D
           </div>
 
           {discussion.users && (
-            <div className="flex items-center gap-2 text-sm">
-              {discussion.users.avatar_url ? (
-                <img
-                  src={discussion.users.avatar_url}
-                  alt={discussion.users.username}
-                  className="w-6 h-6 rounded-full object-cover ring-2 ring-white/20"
-                />
-              ) : (
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center font-semibold text-xs ring-2 ${
-                    hasThumbnail
-                      ? 'bg-white/20 text-white ring-white/20'
-                      : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 ring-red-200 dark:ring-red-800'
-                  }`}
-                >
-                  {discussion.users.username.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span className={hasThumbnail ? 'text-gray-100' : 'text-muted-foreground'}>
-                {discussion.users.username}
-              </span>
+            <div className={hasThumbnail ? 'text-gray-100' : 'text-muted-foreground'}>
+              <UserLink
+                userId={discussion.author_id}
+                username={discussion.users.username}
+                showAvatar={true}
+                avatarUrl={discussion.users.avatar_url}
+                className={hasThumbnail ? 'text-gray-100' : ''}
+              />
             </div>
           )}
         </div>
