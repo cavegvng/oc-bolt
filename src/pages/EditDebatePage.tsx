@@ -355,24 +355,47 @@ export function EditDebatePage() {
                   name="durationType"
                   value="days"
                   checked={formData.durationType === 'days'}
-                  onChange={(e) => setFormData({ ...formData, durationType: e.target.value as 'days' })}
+                  onChange={(e) => setFormData({ ...formData, durationType: e.target.value as 'days', duration_days: '1' })}
                   className="w-4 h-4"
                 />
                 <Calendar className="w-5 h-5 text-muted-foreground" />
-                <span className="text-foreground">Set duration in days</span>
+                <span className="text-foreground">Set duration</span>
               </label>
 
               {formData.durationType === 'days' && (
-                <div className="ml-10">
-                  <input
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={formData.duration_days}
-                    onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
-                    placeholder="Number of days"
-                    className="w-full px-4 py-3 border border-border rounded-2xl bg-card text-foreground focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  />
+                <div className="ml-10 space-y-2">
+                  <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                    <input
+                      type="radio"
+                      name="durationValue"
+                      checked={formData.duration_days === '1'}
+                      onChange={() => setFormData({ ...formData, duration_days: '1' })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-foreground">1 day</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                    <input
+                      type="radio"
+                      name="durationValue"
+                      checked={formData.duration_days === '3'}
+                      onChange={() => setFormData({ ...formData, duration_days: '3' })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-foreground">3 days</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                    <input
+                      type="radio"
+                      name="durationValue"
+                      checked={formData.duration_days === '7'}
+                      onChange={() => setFormData({ ...formData, duration_days: '7' })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-foreground">7 days</span>
+                  </label>
                 </div>
               )}
 

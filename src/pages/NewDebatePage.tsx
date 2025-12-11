@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Scale } from 'lucide-react';
+import { ArrowLeft, Scale, Calendar } from 'lucide-react';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 
@@ -15,6 +15,7 @@ export function NewDebatePage() {
     topic: '',
     description: '',
     category_id: '',
+    duration_days: null as number | null,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +53,13 @@ export function NewDebatePage() {
     setSubmitting(true);
     setError('');
 
+    let end_date = null;
+    if (formData.duration_days) {
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + formData.duration_days);
+      end_date = endDate.toISOString();
+    }
+
     const { data, error: insertError } = await supabase
       .from('debates')
       .insert({
@@ -59,6 +67,8 @@ export function NewDebatePage() {
         topic: formData.topic.trim(),
         description: formData.description.trim() || null,
         category_id: formData.category_id || null,
+        duration_days: formData.duration_days,
+        end_date,
       })
       .select()
       .single();
@@ -152,6 +162,60 @@ export function NewDebatePage() {
               className="w-full px-4 py-3 border border-border rounded-2xl bg-card text-foreground placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
               rows={6}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Time Duration
+            </label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                <input
+                  type="radio"
+                  name="duration"
+                  checked={formData.duration_days === null}
+                  onChange={() => setFormData({ ...formData, duration_days: null })}
+                  className="w-4 h-4"
+                />
+                <span className="text-foreground">No time limit</span>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                <input
+                  type="radio"
+                  name="duration"
+                  checked={formData.duration_days === 1}
+                  onChange={() => setFormData({ ...formData, duration_days: 1 })}
+                  className="w-4 h-4"
+                />
+                <Calendar className="w-5 h-5 text-muted-foreground" />
+                <span className="text-foreground">1 day</span>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                <input
+                  type="radio"
+                  name="duration"
+                  checked={formData.duration_days === 3}
+                  onChange={() => setFormData({ ...formData, duration_days: 3 })}
+                  className="w-4 h-4"
+                />
+                <Calendar className="w-5 h-5 text-muted-foreground" />
+                <span className="text-foreground">3 days</span>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 border border-border rounded-2xl cursor-pointer hover:bg-accent transition-colors">
+                <input
+                  type="radio"
+                  name="duration"
+                  checked={formData.duration_days === 7}
+                  onChange={() => setFormData({ ...formData, duration_days: 7 })}
+                  className="w-4 h-4"
+                />
+                <Calendar className="w-5 h-5 text-muted-foreground" />
+                <span className="text-foreground">7 days</span>
+              </label>
+            </div>
           </div>
 
           <div className="flex items-center justify-between pt-6 border-t border-border">

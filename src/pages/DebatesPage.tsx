@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
-import { Scale, ThumbsUp, ThumbsDown, Minus, Clock, Eye, Filter, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Scale, ThumbsUp, ThumbsDown, Minus, Clock, Eye, Filter, Trash2, CheckSquare, Square, Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/use-permissions';
 import { DeleteConfirmationModal } from '../components/DeleteConfirmationModal';
@@ -27,6 +27,7 @@ type Debate = Database['public']['Tables']['debates']['Row'] & {
 type Category = Database['public']['Tables']['categories']['Row'];
 
 export function DebatesPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { hasRole } = usePermissions();
   const [debates, setDebates] = useState<Debate[]>([]);
@@ -39,6 +40,7 @@ export function DebatesPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const canModerate = hasRole('moderator');
+  const canCreateDebate = hasRole('super_moderator');
 
   useEffect(() => {
     fetchCategories();
@@ -170,6 +172,16 @@ export function DebatesPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {canCreateDebate && (
+            <button
+              onClick={() => navigate('/debates/new')}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-medium transition-colors"
+              title="Create Debate"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="hidden sm:inline">Create</span>
+            </button>
+          )}
           {canModerate && (
             <button
               onClick={toggleSelectionMode}
